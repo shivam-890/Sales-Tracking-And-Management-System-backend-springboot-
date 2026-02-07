@@ -25,11 +25,29 @@ public class Constants {
 	 public static final String PHONE_ALREADY_EXIST = "Phone number already exist";
 
 	 public static final String INVALID_CREDENTIAL = "Invalid Creadiantial";
-	 public static final String ROLES_NOT_BLANK = "Roles must not be empty";
-	 public static final String ROLES_INVALID = "One or more roles invalid";
 	 
 	 // ========================User related general constants ==============
 	 
-	 public static final String USER_REGISTERED = "User is successfully registeres";
+	 public static final String USER_REGISTERED = "User is successfully registered";
+	 public static final String USER_LOGIN = "User is successfully login";
+	 
+	 // ============================== Roles Related ==============================
+	 
+	 public static final String ROLES_NOT_BLANK = "Roles must not be empty";
+	 public static final String ROLES_INVALID = "One or more roles invalid";
+	 public static final String ROLE_NOT_FOUND= "Role not found !";
+	 public static final String ROLE_ADD_SUCCESS= "Role is added successfully";
+	 public static final String ROLE_ALREADY_EXIST= "Role already exist !";
+	 public static final String ROLE_REGEX= "^[A-Z]+(_[A-Z]+)*$";
+	 public static final String ROLE_ERROR= "Role invalid, role must be uppercase, and use underscore between two words like SALES_MANAGER";
+	 
 
+	 // ============================== Permission Related ==============================
+	 
+	 public static final String PERMISSIONS_NOT_BLANK = "Permission must not be empty";
+	 public static final String PERMISSION_REGEX= "^[A-Z]+(_[A-Z]+)*$";
+	 public static final String PERMISSION_ERROR= "Permission invalid, permission must be uppercase,and use underscore between two words like CREATE_USER";
+	 public static final String PERMISSION_ALREADY_EXIST= "Permission already exist";
+	 public static final String PERMISSION_ADD_SUCCESS= "Permission add successfully0";
+	 public static final String PERMISSION_NOT_FOUND= "Permission not found !";
 }

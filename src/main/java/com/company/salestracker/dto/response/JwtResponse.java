@@ -1,5 +1,18 @@
 package com.company.salestracker.dto.response;
 
-public class JwtResponse {
+import com.fasterxml.jackson.annotation.JsonInclude;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class JwtResponse {
+      private String Token;
+      private ApiResponse apiRespnse;
 }

@@ -15,6 +15,11 @@ import com.company.salestracker.util.ResponseUtil;
 public class GlobalExceptionHandler {
 	
 	
+	@ExceptionHandler(ResourceAlreadyExistsException.class)
+	public ResponseEntity<ApiResponse> resourceAlreadyExistsException(ResourceAlreadyExistsException message)
+	{
+		return ResponseUtil.buildResponseMessage(message.getMessage(), HttpStatus.CONFLICT);
+	}
 	
 	@ExceptionHandler(BadRequestException.class)
 	public ResponseEntity<ApiResponse> badRequestException(BadRequestException message)

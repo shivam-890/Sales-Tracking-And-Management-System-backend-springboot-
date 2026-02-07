@@ -5,5 +5,5 @@ import com.company.salestracker.dto.response.UserResponse;
 
 public interface AuthService {
 	 UserResponse registerUser(UserRequest userRequest);
-
+	 public String login(String email, String password);
 }

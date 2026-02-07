@@ -13,10 +13,11 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginRequest {
-	    @NotEmpty(message = Constants.EMAIL_NOT_BLANK)
-	    @Pattern(regexp = Constants.VALID_EMAIL_REGEX, message = Constants.EMAIL_ERROR)
-        private String userEmail;
-	    @NotEmpty(message = Constants.PASSWORD_NOT_BLANK)
-        private String userPassword;
+public class PermissionRequest {
+	
+	@NotEmpty(message = Constants.PERMISSIONS_NOT_BLANK)
+	@Pattern(regexp = Constants.PERMISSION_REGEX ,message = Constants.PERMISSION_ERROR)
+	private String permissionCode;
+	private String description;
+
 }

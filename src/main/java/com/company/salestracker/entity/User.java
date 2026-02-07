@@ -1,6 +1,7 @@
 package com.company.salestracker.entity;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -68,7 +69,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserStatus isActive;
 
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_roles",
         joinColumns = @JoinColumn(name = "user_id"),
