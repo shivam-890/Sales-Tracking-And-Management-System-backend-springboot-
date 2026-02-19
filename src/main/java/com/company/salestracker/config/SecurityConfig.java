@@ -50,12 +50,14 @@ public class SecurityConfig {
     
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    	
         http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-              .requestMatchers("/api/auth/register","/api/auth/login").permitAll()
-         	  .requestMatchers("/api/users").hasAuthority("ROLE_SUPER_ADMIN")
-         	  .requestMatchers("/api/roles").hasAuthority("ROLE_SUPER_ADMIN")
-         	  .requestMatchers("/api/permissions").hasAuthority("ROLE_SUPER_ADMIN")
+              .requestMatchers("/api/auth/login").permitAll()
+//         	  .requestMatchers("/api/users").hasAuthority("ROLE_SUPER_ADMIN")
+//         	 .requestMatchers("/api/roles").hasAuthority("ROLE_SUPER_ADMIN")
+//         	 .requestMatchers("/api/roles").hasAuthority("ADMIN")
+//         	 .requestMatchers("/api/users").hasAuthority("ADMIN")
 //         	  .requestMatchers("/api/complaints/{id}").hasAuthority("ADMIN")
          //   .requestMatchers(HttpMethod.GET,"/api/complaints").hasAuthority("ADMIN")
          //   .requestMatchers("/custmer").hasAuthority("CUSTMER")
@@ -66,10 +68,33 @@ public class SecurityConfig {
             .authenticationProvider(authenticationProvider())
             .sessionManagement(sess ->
                 sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            );
+            ).exceptionHandling(exception -> exception
+
+            	      .authenticationEntryPoint((request, response, ex) -> {
+            	       response.setContentType("application/json");
+            	       response.setStatus(401);
+            	       response.getWriter().write("""
+            	         {
+            	           "success": false,
+            	           "message": "Unauthorized - Invalid or Missing Token",
+            	           "errorCode": "AUTH_401"
+            	         }
+            	         """);
+            	      })
+
+            	      .accessDeniedHandler((request, response, ex) -> {
+            	       response.setContentType("application/json");
+            	       response.setStatus(403);
+            	       response.getWriter().write("""
+            	         {
+            	           "success": false,
+            	           "message": "Forbidden - You don't have permission",
+            	           "errorCode": "AUTH_403"
+            	         }
+            	         """);
+            	      }));
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
         return http.build();
     }
 }

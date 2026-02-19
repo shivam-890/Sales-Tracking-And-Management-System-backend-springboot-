@@ -18,14 +18,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@SuperBuilder
 @Table(name = "lead_activities")
-public class LeadActivity {
+public class LeadActivity extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -42,8 +42,11 @@ public class LeadActivity {
     @ManyToOne
     @JoinColumn(name = "created_by")
     private User createdBy;
+    
+    
+    @ManyToOne
+    @JoinColumn(name = "owner")
+    private User owner;
 
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
+  
 }

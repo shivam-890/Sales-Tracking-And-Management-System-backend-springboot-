@@ -1,7 +1,11 @@
 package com.company.salestracker.dto.request;
 
 
+import java.util.Set;
+
+import com.company.salestracker.entity.Role;
 import com.company.salestracker.util.Constants;
+import com.company.salestracker.validation.annotation.ValidRoles;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -30,5 +34,8 @@ public class UserRequest {
 
     @NotEmpty(message = Constants.PHONE_NOT_BLANK)
     @Pattern(regexp = Constants.VALID_PHONE_REGEX, message = Constants.PHONE_ERROR)
-    private String userPhone;    
+    private String userPhone;
+    
+    @ValidRoles
+    private Set<String> roles;
 }

@@ -1,13 +1,22 @@
 package com.company.salestracker.service;
 
-import org.springframework.stereotype.Service;
+import java.util.List;
+import java.util.Set;
+
 
 import com.company.salestracker.dto.request.PermissionRequest;
+import com.company.salestracker.dto.response.PaginationResponse;
 import com.company.salestracker.dto.response.PermissionResponse;
+import com.company.salestracker.dto.response.RoleResponse;
+import com.company.salestracker.entity.Permission;
 
 
 public interface PermissionService {
 
-	 public PermissionResponse addPermission(PermissionRequest permissionRequest); 
+
+	public List<PermissionResponse> getPermissions();
+	public Set<Permission> getPermissionsForLoader();
+	public Set<String> getPermissionsOfLoggedUser() ;
+
 	
 }

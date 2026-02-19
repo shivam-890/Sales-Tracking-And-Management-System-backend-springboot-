@@ -9,6 +9,7 @@ import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.company.salestracker.enums.Status;
 import com.company.salestracker.util.Constants;
 
 import jakarta.annotation.Generated;
@@ -23,51 +24,52 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
 @Setter
-@Builder
+@SuperBuilder
+@RequiredArgsConstructor
 @AllArgsConstructor
-@NoArgsConstructor
 @Table(name = "users")
-public class User {
+public class User extends BaseEntity{
 
-	
-    @Id
+	@Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private String userId;
-    
+
     @Column(nullable = false)
     private String userName;
-    
-    @Column(nullable = false)
+
+    @Column(nullable = false, unique = true)
     private String userEmail;
-    
+
     @Column(nullable = false)
     private String userPassword;
-    
+
     @Column(nullable = false)
     private String userPhone;
-
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
     
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
-        
-    @Column(nullable = false)
-    private Boolean isDelete;
+    @ManyToOne
+    @JoinColumn(name = "ownerId")
+    private User owner;
+    
+    @ManyToOne
+    @JoinColumn(name = "createdBy")
+    private User createdBy;
     
     @Enumerated(EnumType.STRING)
-    private UserStatus isActive;
+    @Column(nullable = false)
+    private Status status;
 
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
@@ -75,5 +77,5 @@ public class User {
         joinColumns = @JoinColumn(name = "user_id"),
         inverseJoinColumns = @JoinColumn(name = "role_id")
     )
-    private Set<Role> roles;
+    private Set<Role> roles = new HashSet<>();
 }

@@ -3,7 +3,7 @@ package com.company.salestracker.dto.response;
 import java.util.Set;
 
 import com.company.salestracker.entity.Role;
-import com.company.salestracker.entity.UserStatus;
+import com.company.salestracker.enums.Status;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -31,7 +31,10 @@ public class UserResponse {
 	 private String userName;
 	 private String userEmail;
 	 private String userPhone;
-	 private UserStatus userStatus;
+	 private Status userStatus;
+	 private Boolean userIsDelete;
+	 private String createdBy;
+	 private String ownerId;
 	 private Set<String> userRoles;
 	
 }

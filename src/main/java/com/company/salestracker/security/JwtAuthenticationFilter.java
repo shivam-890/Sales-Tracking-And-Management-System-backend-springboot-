@@ -21,7 +21,17 @@ import lombok.RequiredArgsConstructor;
 public class JwtAuthenticationFilter extends OncePerRequestFilter  {
 	 private final UserDetailsService userDetailsService;
 	    private final JwtTokenProvider jwtService;
+	    @Override
+	    protected boolean shouldNotFilter(HttpServletRequest request) {
 
+	     String path = request.getServletPath();
+	      System.err.println("Jwt Authentication shouldNotFilter === ");
+
+	      return 
+	                  path.endsWith("/api/auth/login")||
+	                  path.equals("/error");
+	                  
+	    }
 	 
 	    @Override
 	    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {

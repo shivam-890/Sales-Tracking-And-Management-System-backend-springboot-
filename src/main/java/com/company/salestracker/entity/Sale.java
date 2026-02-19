@@ -2,7 +2,10 @@ package com.company.salestracker.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Set;
 
+import com.company.salestracker.enums.PaymentStatus;
+import com.company.salestracker.enums.Status;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -18,14 +21,16 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
 @Setter
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "sales")
-public class Sale {
+public class Sale extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -46,4 +51,12 @@ public class Sale {
     
     @Column(nullable = false)
     private LocalDate saleDate;
+    
+    @ManyToOne
+    @JoinColumn(name = "createdBy")
+    private User createdBy;
+    
+    @ManyToOne
+    @JoinColumn(name = "owner")
+    private User owner;
 }

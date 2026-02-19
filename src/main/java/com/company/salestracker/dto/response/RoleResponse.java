@@ -27,5 +27,7 @@ public class RoleResponse {
 	private String roleName;
 	private String roleDescription;
 	private Set<String> rolePermission;
+	private String createdBy;
+	private String adminId;
 	private ApiResponse apiResponse;
 }

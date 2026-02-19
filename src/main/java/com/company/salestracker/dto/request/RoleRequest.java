@@ -3,7 +3,9 @@ package com.company.salestracker.dto.request;
 import java.util.Set;
 
 import com.company.salestracker.entity.Permission;
+import com.company.salestracker.entity.User;
 import com.company.salestracker.util.Constants;
+import com.company.salestracker.validation.annotation.ValidPermissions;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -20,11 +22,10 @@ import lombok.Setter;
 public class RoleRequest {
 	
 	@NotEmpty(message = Constants.ROLES_NOT_BLANK)
-	@Pattern(regexp = Constants.ROLE_REGEX, message = Constants.ROLE_ERROR)
 	 private String roleName;
 	    
 	 private String roleDescription;
 	 
-//	 @NotNull(message = Constants.PERMISSIONS_NOT_BLANK)
-//	 private Set<Permission> permissions;
+	 @ValidPermissions
+	 private Set<String> permissions;
 }

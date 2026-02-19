@@ -9,6 +9,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.company.salestracker.enums.DealStatus;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -23,14 +25,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
+@SuperBuilder
 @Table(name = "deals")
-public class Deal {
+public class Deal extends BaseEntity{
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -46,16 +48,17 @@ public class Deal {
     private BigDecimal expectedAmount;
     
     private LocalDate closingDate;
+    
+    @ManyToOne
+    @JoinColumn(name = "owner")
+    private User owner;
+    
+    @ManyToOne
+    @JoinColumn(name = "createdBy")
+    private User createdBy;
 
     @ManyToOne
     @JoinColumn(name = "assigned_to")
     private User assignedTo;
-
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
 }
 

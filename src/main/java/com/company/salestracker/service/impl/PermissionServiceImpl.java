@@ -1,52 +1,78 @@
 package com.company.salestracker.service.impl;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.company.salestracker.dto.request.PermissionRequest;
 import com.company.salestracker.dto.response.PermissionResponse;
 import com.company.salestracker.entity.Permission;
-import com.company.salestracker.exception.ResourceAlreadyExistsException;
+import com.company.salestracker.entity.User;
 import com.company.salestracker.repository.PermissionRepository;
 import com.company.salestracker.service.PermissionService;
-import com.company.salestracker.util.Constants;
+import com.company.salestracker.util.Helper;
+
 
 @Service
 public class PermissionServiceImpl implements PermissionService{
 
 	@Autowired
-	private PermissionRepository permissionRepo ;
+	private PermissionRepository permissionRepository;
+	@Autowired
+	private Helper helper;
 	
-	// ========================== Add permission ==========================================
 	
 	@Override
-	public PermissionResponse addPermission(PermissionRequest permissionRequest) {
-		permissionRepo.findByPermissionCode(permissionRequest.getPermissionCode())
-		                    .ifPresent( u ->{throw new ResourceAlreadyExistsException(Constants.PERMISSION_ALREADY_EXIST);});
+	public List<PermissionResponse> getPermissions() {
+
+	    List<Permission> permissions = permissionRepository.findAll();
+
+	    return permissions.stream()
+	            .map(this::mapToResponse)
+	            .toList();
+	}
+
+
+	@Override
+	public Set<Permission> getPermissionsForLoader() {
+
+		return permissionRepository.findAll()
+	            .stream()
+	            .collect(Collectors.toSet());
+	}
+
+	@Override
+	public Set<String> getPermissionsOfLoggedUser() {
+		User loggedUser = helper.getLoggedUser();
 		
-		Permission permission = mapToEntity(permissionRequest);
+
+	    if (loggedUser == null) {
+	        throw new RuntimeException("User not authenticated");
+	    }
+
+	    return Optional.ofNullable(loggedUser.getRoles())
+	            .orElse(Collections.emptySet())
+	            .stream()
+	            .filter(role -> role.getPermissions() != null)
+	            .flatMap(role -> role.getPermissions().stream())
+	            .map(Permission::getPermissionCode)
+	            .collect(Collectors.toSet());
 		
-		return mapToDto(permissionRepo.save(permission));
 	}
 	
-	// ========================== Mapt to Entity ==========================================
 	
-	private Permission mapToEntity(PermissionRequest permissionRequest)
-	{
-		 return Permission.builder()
-				          .permissionCode(permissionRequest.getPermissionCode())
-				          .description(permissionRequest.getDescription()).build();
+	private PermissionResponse mapToResponse(Permission permission) {
+
+	    return PermissionResponse.builder()
+	            .permissionId(permission.getPermissionId())
+	            .permissionCode(permission.getPermissionCode())
+	            .description(permission.getDescription())
+	            .build();
 	}
-	
-	// ========================== Mapt to Dto ==========================================
-	
-	private PermissionResponse mapToDto(Permission permission)
-	{
-		return PermissionResponse.builder()
-				.permissionCode(permission.getPermissionCode())
-				.permissionId(permission.getPermissionId())
-				.description(permission.getDescription())
-				.build();
-	}
+
 
 }

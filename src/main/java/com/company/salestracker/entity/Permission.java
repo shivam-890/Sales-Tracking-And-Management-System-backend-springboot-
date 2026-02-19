@@ -16,13 +16,17 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
+@SuperBuilder
+@RequiredArgsConstructor
 @AllArgsConstructor
-@Builder
+@NoArgsConstructor
 @Table(name = "permissions")
 public class Permission {
 
@@ -31,10 +35,12 @@ public class Permission {
     private String permissionId;
 
     @Column(nullable = false)
+    @NonNull
     private String permissionCode;
+    @NonNull
     private String description;
 
-    @ManyToMany(mappedBy = "permissions", fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "permissions", fetch = FetchType.EAGER)
     private Set<Role> roles;
 }
 
