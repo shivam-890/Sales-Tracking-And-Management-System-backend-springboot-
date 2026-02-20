@@ -426,25 +426,25 @@ private void userValidation(User user)
 	{	
 		if(user.getOwner()==null);                                                // can manage super admin
 		else if(user.getUserId().equals(user.getOwner().getUserId()));           // can manage admin 
-		else throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE_USER); // cannot manage other else
+		else throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE); // cannot manage other else
 	}
 	else if(isSuperAdmin(loggedUser))
 	{
 		if(user.getOwner()==null && user.getCreatedBy()!=null);		              // can manage super admin
 		else if(user.getUserId().equals(user.getOwner().getUserId()));           // can manage admin
-		else throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE_USER); // cannot manage other else
+		else throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE); // cannot manage other else
 	}
 	else if(isAdmin(loggedUser))       // logged user admin he
 	{	
-        if(user.getOwner()==null)  throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE_USER);
-        if(!user.getOwner().getUserId().equals(loggedUser.getUserId())) throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE_USER);
+        if(user.getOwner()==null)  throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE);
+        if(!user.getOwner().getUserId().equals(loggedUser.getUserId())) throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE);
 			          	
 	}
 	else if(isEmployee(loggedUser)) 
 	{	  	
-		if(user.getOwner()==null)  throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE_USER);
-		if(user.getUserId().equals(user.getOwner().getUserId())) throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE_USER);
-		if(!user.getOwner().getUserId().equals(loggedUser.getUserId())) throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE_USER);		
+		if(user.getOwner()==null)  throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE);
+		if(user.getUserId().equals(user.getOwner().getUserId())) throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE);
+		if(!user.getOwner().getUserId().equals(loggedUser.getUserId())) throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE);		
 	}
 }
 

@@ -37,7 +37,7 @@ import jakarta.validation.Valid;
 
 @Validated
 @RestController
-@RequestMapping("/api/leads")
+@RequestMapping("/api/deals")
 public class DealController {
 	
 	@Autowired

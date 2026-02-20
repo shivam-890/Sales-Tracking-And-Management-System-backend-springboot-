@@ -41,7 +41,7 @@ public class Constants {
 	 public static final String YOU_CANNOT_DEACTIVATE_USER = "You have no permission to de-activate this user";
 	 public static final String YOU_CANNOT_ACTIVATE_ITSELF = "You have no permission to activate itself";
 	 public static final String YOU_CANNOT_DEACTIVATE_ITSELF = "You have no permission to de-activate itself";
-	 public static final String YOU_CANNOT_MANAGE_USER = "You have no permission to manage user";
+	 public static final String YOU_CANNOT_MANAGE = "You have no permission to manage Organization";
 	 public static final String ASSIGNED_USER_NOT_FOUND = "Assign user not found !";	 
 
 	 public static final String PENDING = "PENDING";
@@ -118,11 +118,24 @@ public class Constants {
 	 public final static String STATUS_NOT_BLANK = "Status is required";
 	
 	 // ============================= DEAL RELATED =====================================
-//	 public final static String USERNAME_ERROR = "Username invalid special character and more than one space in middile not allowed and no space allowed in start and end";
-//	 public final static String USERNAME_NOT_BLANK = "User name cannot be empty";
+	 
 	 public final static String CANNOT_DELETE_DEAL = "You canno delete deal beacuse deal in any process";
 	 public final static String DEAL_STAGE_REQUIRED = "Deal stage required";
 	 public final static String DEAL_REQUIRED = "Deal required";
 	 public final static String DEAL_DELETE = "Deal delete successfully";
 	 public final static String DEAL_CREATED = "Deal created successfully";
+	 public final static String DEAL_NOT_FOUND= "Deal not found";
+	 public final static String DEAL_SHOULD_WON = "Sale can only be created for CLOSED_WON deals";
+	 
+	 // ============================= SALE RELATED =====================================
+	 
+	 public final static String SALE_AMOUNT_REQUIRED = "Sale amount required";
+	 public final static String INVOICE_REQUIRED = "Invoice number required";
+	 public final static String PAYMENT_STATUS_REQUIRED = "Payment status required";
+	 public final static String SALE_ALREADY_EXISTS = "Sale already exist";
+	 public final static String SALE_NOT_FOUND = "Sale not found";
+	 public final static String YOU_CANNOT_UPDATE_PAYMENT_STATUS = "You cannot update payment status";
+	 
+	 
+	 
 }

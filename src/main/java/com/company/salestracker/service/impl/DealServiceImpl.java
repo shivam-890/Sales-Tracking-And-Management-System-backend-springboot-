@@ -51,7 +51,6 @@ public class DealServiceImpl implements DealService {
     @Override
     public DealResponse createDeal(DealRequest dealRequest) {
     	
-    	
     	User ownerOfloggedUser = helper.getOwnerOfLoggedUser();
     	
     	LeadServiceImpl.leadValidations();
@@ -121,10 +120,9 @@ public class DealServiceImpl implements DealService {
     	User loggedUser = helper.getLoggedUser();
     	LeadServiceImpl.leadValidations();
     	
-      	 Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("transactionId").descending());
-   	      Page<Deal> listOfDeal=null;
-   	    
-   	      listOfDeal = dealRepo.findByOwner_UserIdAndDeleted(loggedUser.getOwner().getUserId(),NOT_DELETED,pageable);
+      	 Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("dealId").descending());
+      	 
+   	      Page<Deal> listOfDeal = dealRepo.findByOwner_UserIdAndDeleted(loggedUser.getOwner().getUserId(),NOT_DELETED,pageable);
            
    	    List<DealResponse> dtoPage = listOfDeal.map(this::mapToDto).toList();
 
@@ -163,7 +161,7 @@ public class DealServiceImpl implements DealService {
     	 userRepo.findByUserIdAndOwnerUserIdAndDeleted(assignTo,ownerOfloggedUser.getUserId(),NOT_DELETED)                           
            .orElseThrow(() -> new ResourceNotFoundException(Constants.ASSIGNED_USER_NOT_FOUND)); 
     	
-   	 Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("transactionId").descending());
+   	 Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("dealId").descending());
 	      Page<Deal> listOfDeal=null;
 	    
 	      listOfDeal = dealRepo.findByAssignedTo_UserIdAndOwnerUserIdAndDeleted(assignTo,ownerOfloggedUser.getUserId(),NOT_DELETED,pageable);
@@ -211,7 +209,7 @@ public class DealServiceImpl implements DealService {
     	User ownerOfloggedUser = helper.getOwnerOfLoggedUser();
     	
    	 Deal deal = dealRepo.findByDealIdAndOwnerUserIdAndDeleted(updateDealStatusRequest.getDealId(),ownerOfloggedUser.getUserId(),NOT_DELETED)
-                .orElseThrow(() -> new ResourceNotFoundException("Deal not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(Constants.DEAL_NOT_FOUND));
 
        
         if (!deal.getDealStage().canMoveTo(updateDealStatusRequest.getDealStage())) 

@@ -1,5 +1,7 @@
 package com.company.salestracker.controller;
 
-public class SalesController {
 
+
+public class SalesController {
+	
 }

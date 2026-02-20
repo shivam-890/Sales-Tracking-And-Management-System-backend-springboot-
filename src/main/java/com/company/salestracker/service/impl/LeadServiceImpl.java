@@ -105,7 +105,7 @@ public class LeadServiceImpl implements LeadService {
     	User loggedUser = helper.getLoggedUser();
     	leadValidations();
     	
-    	 Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("transactionId").descending());
+    	 Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("leadId").descending());
  	    
  	    Page<Lead> listOfLead = leadRepo.findByOwner_UserIdAndDeleted(loggedUser.getOwner().getUserId(),pageable,NOT_DELETED);
  	    
@@ -137,7 +137,7 @@ public class LeadServiceImpl implements LeadService {
     	
     	leadValidations();
 
-    	  Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("transactionId").descending());
+    	  Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("leadId").descending());
   	    
   	    Page<Lead> listOfLead = leadRepo.findByAssignedTo_UserIdAndDeleted(assignTo,pageable,NOT_DELETED);
   	    
@@ -290,8 +290,12 @@ public class LeadServiceImpl implements LeadService {
         User loggedUser = helper.getLoggedUser();
 
     	if(loggedUser.getOwner()==null)                                       // logged user yadi super admin he wo manage nahi kra skta
-   		 throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE_USER);
+   		 throw new AccessDeniedException(Constants.YOU_CANNOT_MANAGE);
     }
+    
+    
+    
+    //======================================== ADD LEAD ACTIVITY =====================================================
     
     public void addLeadActivity(Lead lead,String activityType,String notes) {
     	User loggedUser = helper.getLoggedUser();
@@ -305,6 +309,8 @@ public class LeadServiceImpl implements LeadService {
 	            .deleted(NOT_DELETED)
 	            .build());
 	}
+    
+    //======================================== GET LEAD ACTIVITY =====================================================
 
 	@Override
 	public PaginationResponse<LeadActivityResponse> getLeadActivity(int pageNumber, int pageSize) {
@@ -322,8 +328,6 @@ public class LeadServiceImpl implements LeadService {
     
     List<LeadActivityResponse> dtoPage = listOfLead.map(this::mapToActivityDto).toList();
 
-
-    
     return new PaginationResponse<>(
   		  dtoPage,
   		listOfLead.getNumber(),
