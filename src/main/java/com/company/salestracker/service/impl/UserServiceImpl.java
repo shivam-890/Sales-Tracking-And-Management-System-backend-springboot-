@@ -263,7 +263,10 @@ public class UserServiceImpl implements UserService {
 	
 	@Override
 	public Boolean activateUser(String userId) {
-		User user =	userRepo.findByUserIdAndDeleted(userId,NOT_DELETED).orElseThrow(() -> new ResourceNotFoundException(Constants.USER_NOT_FOUND));
+		
+		User OwnerOfLoggedUser= helper.getOwnerOfLoggedUser();
+		
+		User user =	userRepo.findByUserIdAndOwnerUserIdAndDeleted(userId,OwnerOfLoggedUser.getUserId(),NOT_DELETED).orElseThrow(() -> new ResourceNotFoundException(Constants.USER_NOT_FOUND));
 		
 		User loggedUser = helper.getLoggedUser();
 		

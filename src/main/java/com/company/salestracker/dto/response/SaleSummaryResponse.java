@@ -22,5 +22,7 @@ public class SaleSummaryResponse {
 	private Long totalSales;
 	private int month;
 	private int year;
+	private String saleUserId;
+	private String saleUserEmail;
 
 }

@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
@@ -76,16 +75,37 @@ public class DataLoader implements CommandLineRunner{
 	        Map.entry("ASSIGN_LEAD", "Assign Lead"),
 	        Map.entry("GET_LEAD_ACTIVITY", "Get lead Activity"),
 	        
+	        //DEAl Permission
 	        Map.entry("CREATE_DEAL", "create deal"),
 	        Map.entry("GET_ALL_DEAL", "Get all deals"),
-	        Map.entry("GET_DEAL_BY_ID", "Get deak by id"),
+	        Map.entry("GET_DEAL_BY_ID", "Get deal by id"),
 	        Map.entry("GET_DEAL_BY_ASSIGN_TO", "Get deal by assign to"),
 	        Map.entry("UPDATE_DEAL", "Update deal"),
 	        Map.entry("DELETE_DEAL", "Delete deal"),
 	        Map.entry("UPDATE_DEAL_STATUS", "update deal status"),
-	        Map.entry("ASSIGN_DEAL", "assign deal")
+	        Map.entry("ASSIGN_DEAL", "assign deal"),
 	        
+	        //SALE Permission
+	        Map.entry("CREATE_SALE", "create sale"),
+	        Map.entry("GET_ALL_SALES", "Get all sales"),
+	        Map.entry("GET_SALE_BY_ID", "Get sale by id"),
+	        Map.entry("GET_MONTHLY_SALES", "Get monthly sale"),
+	        Map.entry("GET_YEARLY_SALES", "Get yearly sale"),
+	        Map.entry("UPDATE_PAYMENT_STATUS", "Update payment status"),
 	        
+	        //Audit Log
+	        Map.entry("GET_AUDIT_LOG", "Get audit log"),
+	        
+	        //TARGET permissions
+	        Map.entry("CREATE_TARGET", "Create target"),
+	        Map.entry("UPDATE_TARGET", "Update target"),
+	        Map.entry("GET_ALL_TARGETS", "Get all targets"),
+	        Map.entry("GET_TARGET_BY_ID", "Get target by id"),
+	        Map.entry("GET_INDIVIDUAL_PERFORMANCE", "Get individual performance"),
+	        Map.entry("GET_TEAM_PERFORMANCE", "Get team performance"),
+	        Map.entry("DELETE_TARGET", "Delete target")
+	        
+	       
 			);
 
 	

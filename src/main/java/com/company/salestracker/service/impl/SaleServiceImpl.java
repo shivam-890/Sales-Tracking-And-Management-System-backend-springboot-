@@ -2,8 +2,10 @@ package com.company.salestracker.service.impl;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.Year;
 import java.time.YearMonth;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import com.company.salestracker.dto.request.GetMonthlyRequest;
+import com.company.salestracker.dto.request.GetYearlySalesRequest;
 import com.company.salestracker.dto.request.PaymentStatusRequest;
 import com.company.salestracker.dto.request.SaleRequest;
 import com.company.salestracker.dto.response.DealResponse;
@@ -40,7 +44,7 @@ public class SaleServiceImpl implements SalesService {
 
     @Autowired private  SalesRepository saleRepo;
     @Autowired private  DealRepository dealRepo;
-    @Autowired private  UserRepository userRepo;
+    @Autowired private UserRepository userRepo;
     @Autowired private Helper helper;
     public static final boolean NOT_DELETED = false;
 
@@ -53,14 +57,14 @@ public class SaleServiceImpl implements SalesService {
 
     	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
     	
-         saleRepo.findByDealIdAndOwnerUserId(saleRequest.getDeal(),ownerOfLoggedUser.getUserId())
+         saleRepo.findByDealAndOwnerUserId(saleRequest.getDeal(),ownerOfLoggedUser.getUserId())
         		        .ifPresent(u -> {  throw new ResourceAlreadyExistsException(Constants.SALE_ALREADY_EXISTS);});  // same deal id se koi sale hematlb sale exist krti he toh exception
                  	
         
    	    Deal deal = dealRepo.findByDealIdAndOwnerUserIdAndDeleted(saleRequest.getDeal(),ownerOfLoggedUser.getUserId(),NOT_DELETED)
              .orElseThrow(() -> new ResourceNotFoundException(Constants.DEAL_NOT_FOUND));                                // yadi deal id jo sale me convert ho rhi he wo exist krti he ya nah
         		                         
-        if (!deal.getDealStage().equals(DealStatus.CLOSED_WON)) {                         // deal shoul be closed Won means success hona chaiye
+        if (!deal.getDealStage().equals(DealStatus.CLOSED_WON)) {                         // deal should be closed Won means success hona chaiye
             throw new BadRequestException(Constants.DEAL_SHOULD_WON);
         }
 
@@ -110,13 +114,13 @@ public class SaleServiceImpl implements SalesService {
     // ================= GET ALL WITH PAGINATION =================
 
     @Override
-    public PaginationResponse<SaleResponse> getAllSales() {
+    public PaginationResponse<SaleResponse> getAllSales(int pageNumber,int pageSize) {
     	
       	LeadServiceImpl.leadValidations();
 
     	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
 
-        Pageable pageable = PageRequest.of(0, 10, Sort.by("saleId").descending());
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("saleId").descending());
 
         Page<Sale> listOfSale = saleRepo.findByOwnerUserId(ownerOfLoggedUser.getUserId(),pageable);
         
@@ -136,46 +140,46 @@ public class SaleServiceImpl implements SalesService {
     // ================= MONTHLY SUMMARY =================
 
     @Override
-    public SaleSummaryResponse getMonthlySales(int month, int year) {
+    public SaleSummaryResponse getMonthlySales(GetMonthlyRequest getMonthlySaleRequest) {
     	
       	LeadServiceImpl.leadValidations();
     	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
 
-        YearMonth ym = YearMonth.of(year, month);
+        YearMonth ym = YearMonth.of(getMonthlySaleRequest.getYear(), getMonthlySaleRequest.getMonth());  // pehele humare pas month year int me arhe toh use month or year ki help se hum YearMonth ka object leke jisse humare pr use jo month rahega uski tart and end date nikal sake
 
-        LocalDate start = ym.atDay(1);
-        LocalDate end = ym.atEndOfMonth();
+        LocalDate start = ym.atDay(1);                      // then ym se hum month start date nikalenge
+        LocalDate end = ym.atEndOfMonth();                  // the end end date kyon ki hume monthly sale chahiye
 
-        List<Sale> successSales = saleRepo.findByOwnerUserIdAndPaymentStatusAndSaleDateBetween(ownerOfLoggedUser.getUserId(),PaymentStatus.SUCCESS,start, end);      
-        List<Sale> pendingSales = saleRepo.findByOwnerUserIdAndPaymentStatusAndSaleDateBetween(ownerOfLoggedUser.getUserId(),PaymentStatus.PENDING,start, end);      
+        List<Sale> successSales = saleRepo.findByOwnerUserIdAndPaymentStatusAndSaleDateBetween(ownerOfLoggedUser.getUserId(),PaymentStatus.SUCCESS,start, end);      // ab us month ki hum success deal ya jiska payment ho chuka he wo nikalneg 
+        List<Sale> pendingSales = saleRepo.findByOwnerUserIdAndPaymentStatusAndSaleDateBetween(ownerOfLoggedUser.getUserId(),PaymentStatus.PENDING,start, end);      // or kitni pending he
 
         BigDecimal successSalesAmount = successSales.stream()
                 .map(Sale::getSaleAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
+                .reduce(BigDecimal.ZERO, BigDecimal::add);       // overoll month ka suucess sale ka total amount 
         
         BigDecimal pendingSaleAmount = pendingSales.stream()
         		.map(Sale::getSaleAmount)
-        		.reduce(BigDecimal.ZERO, BigDecimal::add);
+        		.reduce(BigDecimal.ZERO, BigDecimal::add);          // overoll month ka pending sale ka totol amount
         
         return SaleSummaryResponse.builder()
                 .totalAmount(successSalesAmount)
                 .totalSales(Long.valueOf(successSales.size()))
                 .pendingAmount(pendingSaleAmount)
-                .month(month)
-                .year(year)
+                .month(getMonthlySaleRequest.getMonth())
+                .year(getMonthlySaleRequest.getYear())
                 .build();        
     }
 
     // ================= YEARLY SUMMARY =================
 
     @Override
-    public SaleSummaryResponse getYearlySales(int year) {
+    public SaleSummaryResponse getYearlySales(GetYearlySalesRequest getYearlySalesRequest) {     //same as monthly
       	LeadServiceImpl.leadValidations();
 
     	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
 
-        LocalDate start = LocalDate.of(year, 1, 1);
-        LocalDate end = LocalDate.of(year, 12, 31);
+        LocalDate start = LocalDate.of(getYearlySalesRequest.getYear(), 1, 1);
+        LocalDate end = LocalDate.of(getYearlySalesRequest.getYear(), 12, 31);
 
         List<Sale> successSales = saleRepo.findByOwnerUserIdAndPaymentStatusAndSaleDateBetween(ownerOfLoggedUser.getUserId(),PaymentStatus.SUCCESS,start, end);      
         List<Sale> pendingSales = saleRepo.findByOwnerUserIdAndPaymentStatusAndSaleDateBetween(ownerOfLoggedUser.getUserId(),PaymentStatus.PENDING,start, end);      
@@ -192,7 +196,7 @@ public class SaleServiceImpl implements SalesService {
                 .totalAmount(successSalesAmount)
                 .totalSales(Long.valueOf(successSales.size()))
                 .pendingAmount(pendingSaleAmount)
-                .year(year)
+                .year(getYearlySalesRequest.getYear())
                 .build();       
     }
 
@@ -209,6 +213,79 @@ public class SaleServiceImpl implements SalesService {
 
         return mapToResponse(sale);
     }
+    
+    
+    // ================= get Yearly Sales By User =================
+	@Override
+	public SaleSummaryResponse getYearlySalesByUser(GetYearlySalesRequest getYearlySalesRequest,String commissionUserId) { // ye particular kis bande ne kitni sale ki he ek year me  uska record
+		LeadServiceImpl.leadValidations();
+
+    	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+		User commissionUser =	userRepo.findByUserIdAndOwnerUserIdAndDeleted(commissionUserId,ownerOfLoggedUser.getUserId(),NOT_DELETED).orElseThrow(() -> new ResourceNotFoundException(Constants.USER_NOT_FOUND));
+
+
+        LocalDate start = LocalDate.of(getYearlySalesRequest.getYear(), 1, 1);
+        LocalDate end = LocalDate.of(getYearlySalesRequest.getYear(), 12, 31);
+
+        List<Sale> successSales = saleRepo.findByOwnerUserIdAndCommissionUserUserIdAndPaymentStatusAndSaleDateBetween(ownerOfLoggedUser.getUserId(),commissionUser.getUserId(),PaymentStatus.SUCCESS,start, end);      
+        List<Sale> pendingSales = saleRepo.findByOwnerUserIdAndCommissionUserUserIdAndPaymentStatusAndSaleDateBetween(ownerOfLoggedUser.getUserId(),commissionUser.getUserId(),PaymentStatus.PENDING,start, end);      
+
+        BigDecimal successSalesAmount = successSales.stream()
+                .map(Sale::getSaleAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        BigDecimal pendingSaleAmount = pendingSales.stream()
+        		.map(Sale::getSaleAmount)
+        		.reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        return SaleSummaryResponse.builder()
+                .totalAmount(successSalesAmount)
+                .totalSales(Long.valueOf(successSales.size()))
+                .pendingAmount(pendingSaleAmount)
+                .year(getYearlySalesRequest.getYear())
+                .saleUserId(commissionUser.getUserId())
+                .saleUserEmail(commissionUser.getUserEmail())
+                .build();       
+	}
+	// ================= get monthly Sales By User =================
+
+	@Override
+	public SaleSummaryResponse getMonthlySalesByUser(GetMonthlyRequest getMonthlySaleRequest,String commissionUserId) { // ye particular kis bande ne kitni sale ki he ek month me  uska record
+		LeadServiceImpl.leadValidations();
+    	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+		User commissionUser =	userRepo.findByUserIdAndOwnerUserIdAndDeleted(commissionUserId,ownerOfLoggedUser.getUserId(),NOT_DELETED).orElseThrow(() -> new ResourceNotFoundException(Constants.USER_NOT_FOUND));
+
+    	
+
+        YearMonth ym = YearMonth.of(getMonthlySaleRequest.getYear(), getMonthlySaleRequest.getMonth());
+
+        LocalDate start = ym.atDay(1);
+        LocalDate end = ym.atEndOfMonth();
+
+        List<Sale> successSales = saleRepo.findByOwnerUserIdAndCommissionUserUserIdAndPaymentStatusAndSaleDateBetween(ownerOfLoggedUser.getUserId(),commissionUser.getUserId(),PaymentStatus.SUCCESS,start, end);      
+        List<Sale> pendingSales = saleRepo.findByOwnerUserIdAndCommissionUserUserIdAndPaymentStatusAndSaleDateBetween(ownerOfLoggedUser.getUserId(),commissionUser.getUserId(),PaymentStatus.PENDING,start, end);      
+
+        BigDecimal successSalesAmount = successSales.stream()
+                .map(Sale::getSaleAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        BigDecimal pendingSaleAmount = pendingSales.stream()
+        		.map(Sale::getSaleAmount)
+        		.reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        return SaleSummaryResponse.builder()
+                .totalAmount(successSalesAmount)
+                .totalSales(Long.valueOf(successSales.size()))
+                .pendingAmount(pendingSaleAmount)
+                .month(getMonthlySaleRequest.getMonth())
+                .year(getMonthlySaleRequest.getYear())
+                .saleUserId(commissionUser.getUserId())
+                .saleUserEmail(commissionUser.getUserEmail())
+                .build();        
+	}
+
+    
+
 
     // ================= MAP TO RESPONSE =================
     private Sale mapToEntity(SaleRequest saleRequest,Deal deal) {
@@ -220,8 +297,10 @@ public class SaleServiceImpl implements SalesService {
             .invoiceNumber(saleRequest.getInvoiceNumber())
             .saleDate(saleRequest.getSaleDate() != null ? saleRequest.getSaleDate() : LocalDate.now())
             .paymentStatus(PaymentStatus.PENDING)
+            .commissionUser(deal.getAssignedTo())
             .createdBy(loggedUser)
             .owner(loggedUser.getOwner())
+            .invoiceNumber("INV-" + UUID.randomUUID().toString().substring(0,8))
             .build();
     }
     // ================= MAP TO RESPONSE =================
@@ -241,6 +320,11 @@ public class SaleServiceImpl implements SalesService {
                 .ownerEmail(sale.getOwner().getUserEmail())
                 .build();
     }
+    
+    
+
+
+
 
 
 }

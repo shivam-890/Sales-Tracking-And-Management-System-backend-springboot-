@@ -135,7 +135,19 @@ public class Constants {
 	 public final static String SALE_ALREADY_EXISTS = "Sale already exist";
 	 public final static String SALE_NOT_FOUND = "Sale not found";
 	 public final static String YOU_CANNOT_UPDATE_PAYMENT_STATUS = "You cannot update payment status";
+	 public final static String SALE_CREATED = "Sale is created";
+	 public final static String MONTH_REQUIRED = "Month is required";
+	 public final static String YEAR_REQUIRED = "Year is required";
+	 public final static String INVALID_YEAR = "Invalid year";
+	 public final static String INVALID_MONTH = "Invalid month";
 	 
+	 // ============================= TARGET RELATED =====================================
 	 
-	 
+	 public final static String TARGET_AMOUNT_REQUIRED = "Target Amount is required";
+	 public final static String TARGET_NOT_FOUND = "Target not found";
+	 public final static String CANNOT_UPDATE_TARGET = "Cannot update target  of current and past month";
+	 public final static String CANNOT_DELETE_TARGET = "Cannot Delete target of current and past month";
+	 public final static String TARGET_DELETE = "Target delete successfully";
+	 public final static String TARGET_CREATED = "Target Created successfully";
+	
 }

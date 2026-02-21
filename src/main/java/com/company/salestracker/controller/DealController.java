@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.company.salestracker.dto.request.AssignDealRequest;
 import com.company.salestracker.dto.request.AssignLeadRequest;
 import com.company.salestracker.dto.request.DealRequest;
 import com.company.salestracker.dto.request.LeadRequest;
@@ -95,12 +96,12 @@ public class DealController {
 		return new ResponseEntity<DealResponse>(response, HttpStatus.OK);
 	}
 
-//	@PatchMapping("/assignDeal/{dealId}")
-//	@PreAuthorize("hasAuthority('ASSIGN_LEAD')")
-//	public ResponseEntity<DealResponse> assignLead(@RequestBody @Valid AssignLeadRequest assignLeadRequest,@PathVariable String dealId) {
-//		DealResponse response = dealService.assignLeadById(assignLeadRequest,leadId);
-//		return new ResponseEntity<DealResponse>(response, HttpStatus.OK);
-//	}
+	@PatchMapping("/assignDeal/{dealId}")
+	@PreAuthorize("hasAuthority('ASSIGN_LEAD')")
+	public ResponseEntity<DealResponse> assignLead(@RequestBody @Valid AssignDealRequest assignDealRequest,@PathVariable String dealId) {
+		DealResponse response = dealService.assignDeal(assignDealRequest,dealId);
+		return new ResponseEntity<DealResponse>(response, HttpStatus.OK);
+	}
 	
 
 

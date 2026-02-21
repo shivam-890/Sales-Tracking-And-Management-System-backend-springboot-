@@ -12,5 +12,5 @@ import com.company.salestracker.entity.Deal;
 public interface DealRepository extends JpaRepository<Deal, String>{
     Page<Deal> findByAssignedTo_UserIdAndOwnerUserIdAndDeleted(String userId,String owner,boolean deleted,Pageable pageable);
     Page<Deal> findByOwner_UserIdAndDeleted(String userId,boolean deleted,Pageable pageable);
-     Optional<Deal> findByDealIdAndOwnerUserIdAndDeleted(String dealid,String userId,boolean deleted);
+     Optional<Deal> findByDealIdAndOwnerUserIdAndDeleted(String dealId,String userId,boolean deleted);
 }

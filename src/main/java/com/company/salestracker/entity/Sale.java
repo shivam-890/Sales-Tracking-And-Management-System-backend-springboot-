@@ -54,7 +54,6 @@ public class Sale{
     private PaymentStatus paymentStatus;
     
     @Column(nullable = false)
-    @GeneratedValue(strategy = GenerationType.UUID)
     private String invoiceNumber;
     
     @Column(nullable = false)
@@ -68,6 +67,10 @@ public class Sale{
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
+    @ManyToOne
+    @JoinColumn(name="commissionUser")
+    private User commissionUser;
+    
     @UpdateTimestamp
     private LocalDateTime updatedAt;
     

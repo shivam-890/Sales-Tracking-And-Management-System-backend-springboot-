@@ -47,4 +47,10 @@ public class AuditLog {
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime timestamp;
+    
+    @ManyToOne
+    @JoinColumn(name = "owner_id")
+    private User ownerId;
+    
+    
 }
