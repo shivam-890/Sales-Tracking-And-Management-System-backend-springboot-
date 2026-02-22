@@ -6,12 +6,15 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import com.company.salestracker.entity.Role;
 import com.company.salestracker.entity.User;
 import com.company.salestracker.enums.Status;
+
+import jakarta.transaction.Transactional;
 
 public interface UserRepository extends JpaRepository<User, String>{
 
@@ -51,6 +54,10 @@ public interface UserRepository extends JpaRepository<User, String>{
 	
 	Page<User> findByOwnerUserIdAndDeleted(String owner,boolean deleted,Pageable pageable);
 
+	@Transactional
+	@Modifying
+	@Query("UPDATE User u SET u.userPassword = :newPassword WHERE u.userId = :userId")
+	int resetPassword(@Param("newPassword") String newPassword,@Param("userId") String userId);
 
 	
 }

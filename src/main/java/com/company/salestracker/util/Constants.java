@@ -14,7 +14,7 @@ public class Constants {
 
 	 public final static String USERNAME_ERROR = "Username invalid special character and more than one space in middile not allowed and no space allowed in start and end";
 	 public final static String USERNAME_NOT_BLANK = "User name cannot be empty";
-	 public final static String EMAIL_ERROR = "Email invalid , enter valid email id ";
+	 public final static String EMAIL_ERROR = "Email invalid , enter valid email";
 	 public final static String EMAIL_NOT_BLANK = "Email cannot be empty";
 	 public final static String PASSWORD_ERROR = "Invalid Password, Password must be at least 6 characters and no space allowed";
 	 public final static String PASSWORD_NOT_BLANK = "Password cannot be empty";
@@ -149,5 +149,12 @@ public class Constants {
 	 public final static String CANNOT_DELETE_TARGET = "Cannot Delete target of current and past month";
 	 public final static String TARGET_DELETE = "Target delete successfully";
 	 public final static String TARGET_CREATED = "Target Created successfully";
+	 
+	 // ============================= PASSWORD RELATED =====================================
+	 
+	 public final static String CONFIRM_PASS_MISMATCH = "Confirm password Mismatch, try again";
+	 public final static String OLD_PASSWORD_INCORRECT = "Old password incorrect";
+	 public final static String RESET_PASSWORD = "Password Reset successfully";
+	 public final static String OTP_SEND_SUCCESSFULLY = "Otp Send successfully";
 	
 }

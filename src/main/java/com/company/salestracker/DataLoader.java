@@ -103,8 +103,10 @@ public class DataLoader implements CommandLineRunner{
 	        Map.entry("GET_TARGET_BY_ID", "Get target by id"),
 	        Map.entry("GET_INDIVIDUAL_PERFORMANCE", "Get individual performance"),
 	        Map.entry("GET_TEAM_PERFORMANCE", "Get team performance"),
-	        Map.entry("DELETE_TARGET", "Delete target")
+	        Map.entry("DELETE_TARGET", "Delete target"),
 	        
+	        // PASSWORD 
+	        Map.entry("RESET_PASSWORD", "Reset Password")
 	       
 			);
 

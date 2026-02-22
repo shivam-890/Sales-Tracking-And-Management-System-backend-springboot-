@@ -43,8 +43,6 @@ public class Otp {
 	
 	private Boolean used;
 	
-	@ManyToOne(fetch = FetchType.EAGER)
-	@JoinColumn(name = "user_id")
-	private User user;
+	private String userEmail;
 	
 }

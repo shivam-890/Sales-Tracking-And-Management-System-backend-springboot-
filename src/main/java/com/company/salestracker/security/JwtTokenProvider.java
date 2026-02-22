@@ -17,7 +17,6 @@ import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtTokenProvider {
-	
 
     public static final String SECRET = "5367566859703373367639792F423F452848284D6251655468576D5A71347437";
 
@@ -31,7 +30,20 @@ public class JwtTokenProvider {
                 .setClaims(claims)
                 .setSubject(email)
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) 
+                .signWith(getSignKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+    
+    public String generateRefreshToken(String email) {
+
+        Map<String, Object> claims = new HashMap<>();
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + 1000L * 60 * 60 * 24 * 7)) // 7 days
                 .signWith(getSignKey(), SignatureAlgorithm.HS256)
                 .compact();
     }

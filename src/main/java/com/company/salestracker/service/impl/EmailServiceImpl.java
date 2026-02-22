@@ -5,6 +5,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import com.company.salestracker.exception.BadRequestException;
 import com.company.salestracker.service.EmailService;
 
 import jakarta.mail.MessagingException;
@@ -18,15 +19,23 @@ public class EmailServiceImpl implements EmailService{
     private JavaMailSender mailSender;
 
     @Override
-    public void send(String to, String subject, String body) throws MessagingException {
+    public void send(String to, String subject, String body)  {
        
         MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+        MimeMessageHelper helper;
+		try {
+			helper = new MimeMessageHelper(message, true);
+			 helper.setTo(to);
+		        helper.setSubject(subject);
+		        helper.setText(body, true); 
+		        mailSender.send(message);
+		        
+		} catch (MessagingException e) {
+			e.printStackTrace();
+			throw new BadRequestException("Email not sent");
+		}
 
-        helper.setTo(to);
-        helper.setSubject(subject);
-        helper.setText(body, true); 
-        mailSender.send(message);
+       
     }
     
 

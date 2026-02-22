@@ -26,7 +26,8 @@ public class Helper {
 	public User getLoggedUser()
 	{
 		 Authentication authenticate  = SecurityContextHolder.getContext().getAuthentication();
-		   return userRepo.findByUserEmailAndDeleted(authenticate.getName(), false).get();
+		 
+		   return userRepo.findByUserEmailAndDeleted(authenticate.getName(), false).orElseThrow(() ->new  ResourceNotFoundException(Constants.USER_NOT_FOUND));
 	}
 	
 	// ============================== Get Owner of logged User ================================================

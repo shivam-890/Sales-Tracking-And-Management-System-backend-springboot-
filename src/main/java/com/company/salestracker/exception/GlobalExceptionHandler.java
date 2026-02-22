@@ -63,10 +63,10 @@ public class GlobalExceptionHandler {
 	 }
 
 
-//	@ExceptionHandler(Exception.class)
-//	public ResponseEntity<ApiResponse> exception(Exception e) {
-//
-//		return ResponseUtil.buildResponseMessage(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-//	}      
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ApiResponse> exception(Exception e) {
+
+		return ResponseUtil.buildResponseMessage(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+	}      
 
 }

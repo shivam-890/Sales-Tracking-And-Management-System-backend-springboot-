@@ -1,22 +1,28 @@
 package com.company.salestracker.service.impl;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.company.salestracker.dto.request.ResetPasswordRequest;
 import com.company.salestracker.dto.request.RoleRequest;
 import com.company.salestracker.dto.request.UserRequest;
+import com.company.salestracker.dto.response.JwtResponse;
 import com.company.salestracker.dto.response.UserResponse;
+import com.company.salestracker.entity.RefreshToken;
 import com.company.salestracker.entity.Role;
 import com.company.salestracker.entity.User;
 import com.company.salestracker.enums.Status;
@@ -24,27 +30,34 @@ import com.company.salestracker.exception.AccessDeniedException;
 import com.company.salestracker.exception.BadRequestException;
 import com.company.salestracker.exception.ResourceAlreadyExistsException;
 import com.company.salestracker.exception.UnauthorizedException;
+import com.company.salestracker.repository.RefreshTokenRepository;
 import com.company.salestracker.repository.RoleRepository;
 import com.company.salestracker.repository.UserRepository;
+import com.company.salestracker.security.CustomUserDetailsService;
 import com.company.salestracker.security.JwtTokenProvider;
 import com.company.salestracker.service.AuthService;
+import com.company.salestracker.service.EmailService;
+import com.company.salestracker.service.RefreshTokenService;
 import com.company.salestracker.service.RoleService;
 import com.company.salestracker.util.Constants;
 import com.company.salestracker.util.Helper;
 
+import jakarta.mail.MessagingException;
+import jakarta.transaction.Transactional;
+
 @Service
 public class AuthServiceImpl implements AuthService {
 
-	@Autowired
-	private UserRepository userRepo;
-	@Autowired
-	private RoleRepository roleRepo;
-	@Autowired
-	private RoleService roleService;
-	@Autowired
-	private Helper helper ;
-	@Autowired
-	private PasswordEncoder encoder;
+	@Autowired private UserRepository userRepo;
+	@Autowired private RoleRepository roleRepo;
+	@Autowired private RoleService roleService;
+	@Autowired private Helper helper ;
+    @Autowired private RefreshTokenRepository refreshTokenRepository;
+	@Autowired private PasswordEncoder encoder;
+	@Autowired private CustomUserDetailsService customUserDetailsService;
+	@Autowired private RefreshTokenService refreshTokenService;
+	@Autowired private EmailService emailService;
+	
 	private final AuthenticationManager AuthenticationManager;
 	private final JwtTokenProvider tokenProvider;
 
@@ -60,11 +73,25 @@ public class AuthServiceImpl implements AuthService {
 
 	// =============================== Login Method =================================================
 
-	public String login(String email, String password) {
+	public JwtResponse login(String email, String password) {
 		Authentication auth = AuthenticationManager
 				.authenticate(new UsernamePasswordAuthenticationToken(email, password));
+		
 		SecurityContextHolder.getContext().setAuthentication(auth);
-		return tokenProvider.generateToken(email);
+		
+		
+		String accessToken =  tokenProvider.generateToken(email);
+		
+		 refreshTokenRepository.findByUsername(email).ifPresent(u -> {
+			 refreshTokenService.deleteByUsername(email);
+		 });
+		
+		String refreshToken =  tokenProvider.generateRefreshToken(email);
+		
+	    refreshTokenService.createRefreshToken(email, refreshToken);
+
+		
+		return JwtResponse.builder().refreshToken(refreshToken).Token(accessToken).build();
 	}
 	
 
@@ -177,4 +204,57 @@ public class AuthServiceImpl implements AuthService {
 		    
 		return mapToDto(userRepo.save(savedUser));
 	}
+
+
+
+
+
+	@Override
+	public String generateAccessTokenByRefreshToken(Map<String, String> request) {
+		
+		 String requestToken = request.get("refreshToken");
+
+		    RefreshToken refreshToken = refreshTokenService.verifyRefreshToken(requestToken);
+
+		    UserDetails user = customUserDetailsService
+		            .loadUserByUsername(refreshToken.getUsername());
+
+		    String newAccessToken = tokenProvider.generateToken(user.getUsername());
+
+		    return newAccessToken;
+	}
+
+
+
+
+	@Override
+	@Transactional
+	public boolean resetPassword(ResetPasswordRequest resetPasswordRequest)   {
+
+		User loggedUser = helper.getLoggedUser();
+
+		
+		if(!loggedUser.getUserEmail().equals(resetPasswordRequest.getUserEmail()))
+		              throw new BadRequestException(Constants.EMAIL_ERROR);
+		
+		if(!resetPasswordRequest.getConfirmPassword().equals(resetPasswordRequest.getNewPassword()))
+			          throw new BadRequestException(Constants.CONFIRM_PASS_MISMATCH);
+		
+		
+		if(!encoder.matches( resetPasswordRequest.getOldPassword(),loggedUser.getUserPassword()))
+	                  throw new BadRequestException(Constants.OLD_PASSWORD_INCORRECT);
+		
+		
+	int affectedRows = userRepo.resetPassword(encoder.encode(resetPasswordRequest.getNewPassword()), loggedUser.getUserId());
+		
+      	if(affectedRows == 1)	
+      	{
+      		 emailService.send(loggedUser.getUserEmail(), "Reset Password", "Password reset SuccessFully");
+	    	return true;
+      	}
+	    else throw new BadRequestException("Password is not reset some technical issue");
+		
+	}
 }
+
+
