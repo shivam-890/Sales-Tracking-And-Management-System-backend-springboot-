@@ -5,9 +5,7 @@ import java.util.Set;
 
 import com.company.salestracker.dto.request.PermissionAssignRemoveFromRoleRequest;
 import com.company.salestracker.dto.request.RoleRequest;
-import com.company.salestracker.dto.response.PaginationResponse;
 import com.company.salestracker.dto.response.RoleResponse;
-import com.company.salestracker.dto.response.UserResponse;
 import com.company.salestracker.entity.Role;
 import com.company.salestracker.entity.User;
 

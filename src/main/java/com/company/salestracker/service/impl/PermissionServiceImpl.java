@@ -1,5 +1,6 @@
 package com.company.salestracker.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -10,9 +11,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.company.salestracker.dto.response.PermissionResponse;
+import com.company.salestracker.entity.AuditLog;
 import com.company.salestracker.entity.Permission;
 import com.company.salestracker.entity.User;
 import com.company.salestracker.repository.PermissionRepository;
+import com.company.salestracker.service.AuditService;
 import com.company.salestracker.service.PermissionService;
 import com.company.salestracker.util.Helper;
 
@@ -22,6 +25,7 @@ public class PermissionServiceImpl implements PermissionService{
 
 	@Autowired
 	private PermissionRepository permissionRepository;
+	@Autowired AuditService auditService;
 	@Autowired
 	private Helper helper;
 	
@@ -30,7 +34,16 @@ public class PermissionServiceImpl implements PermissionService{
 	public List<PermissionResponse> getPermissions() {
 
 	    List<Permission> permissions = permissionRepository.findAll();
-
+	 
+	     User loggedUser = helper.getLoggedUser();
+	     
+	     if(loggedUser.getOwner() == null)
+	         auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get Permissions").entityName("Permission").entityId(null).timestamp(LocalDateTime.now()).ownerId(null).build());
+	     else
+	     auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get Permissions").entityName("Permission").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+	    
+       
+	    
 	    return permissions.stream()
 	            .map(this::mapToResponse)
 	            .toList();

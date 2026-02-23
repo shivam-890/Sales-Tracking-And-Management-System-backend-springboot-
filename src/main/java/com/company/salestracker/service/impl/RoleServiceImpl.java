@@ -1,5 +1,6 @@
 package com.company.salestracker.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -8,15 +9,12 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.stereotype.Service;
 
 import com.company.salestracker.dto.request.PermissionAssignRemoveFromRoleRequest;
 import com.company.salestracker.dto.request.RoleRequest;
-import com.company.salestracker.dto.request.UserRequest;
-import com.company.salestracker.dto.response.PaginationResponse;
-import com.company.salestracker.dto.response.PermissionResponse;
 import com.company.salestracker.dto.response.RoleResponse;
+import com.company.salestracker.entity.AuditLog;
 import com.company.salestracker.entity.Permission;
 import com.company.salestracker.entity.Role;
 import com.company.salestracker.entity.User;
@@ -26,7 +24,7 @@ import com.company.salestracker.exception.ResourceAlreadyExistsException;
 import com.company.salestracker.exception.ResourceNotFoundException;
 import com.company.salestracker.repository.PermissionRepository;
 import com.company.salestracker.repository.RoleRepository;
-import com.company.salestracker.repository.UserRepository;
+import com.company.salestracker.service.AuditService;
 import com.company.salestracker.service.PermissionService;
 import com.company.salestracker.service.RoleService;
 import com.company.salestracker.util.Constants;
@@ -42,7 +40,7 @@ public class RoleServiceImpl implements RoleService {
 	@Autowired
 	private PermissionService permissionService;
 	@Autowired
-	private UserRepository userRepo;
+	private AuditService auditService;
 	@Autowired
 	private Helper helper;
 	
@@ -57,6 +55,7 @@ public class RoleServiceImpl implements RoleService {
 		User loggedUser = helper.getLoggedUser();
 		if (loggedUser.getOwner() == null) // Logged user Super admin he
 		{
+			System.out.println("welcome");
 			return superAdminAddRole(loggedUser, roleRequest);
 		} else {
 			return userAddRole(loggedUser, roleRequest);
@@ -70,6 +69,9 @@ public class RoleServiceImpl implements RoleService {
 
 	@Override
 	public List<RoleResponse> getRolesOfAdmin() {
+		User loggedUser = helper.getLoggedUser();
+
+		auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get roles of Admin").entityName("Role").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 
 		return roleRepo.findByAdminIdUserIdAndDeleted(helper.getLoggedUser().getOwner().getUserId(),  NOT_DELETED ).stream()
 				.map(this::mapToDto).toList();
@@ -159,11 +161,19 @@ public class RoleServiceImpl implements RoleService {
 	
 		 private RoleResponse removePermBiolerCode(Role existRole,Set<String> permissions, Set<String> existPermission,String roleId )
 				 {
+			       User loggedUser = helper.getLoggedUser();
  
 			            existRole.setPermissions(removePermissions(permissions, existPermission));
 				         List<Role> existRoleList = new ArrayList<>(); 
 			           	existRoleList.add(existRole); 
-//			           	removeAllPermissionsFromNestedRolesForUpdateAndRemoveCases(existRoleList,permissions);				
+//			           	removeAllPermissionsFromNestedRolesForUpdateAndRemoveCases(existRoleList,permissions);	
+			           	
+			              roleRepo.save(existRole);
+			              
+			          	if(loggedUser.getOwner()==null)
+			    			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Remove role").entityName("Role").entityId(existRole.getRoleId()).timestamp(LocalDateTime.now()).ownerId(null).build());
+			    		else
+			    			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Remove role").entityName("Role").entityId(existRole.getRoleId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 				           return mapToDto(roleRepo.findById(roleId).get());
 				 }
 
@@ -223,6 +233,8 @@ public class RoleServiceImpl implements RoleService {
     		List<Role> roles = roleRepo
     				.findByAdminIdUserIdAndDeleted(null, NOT_DELETED);
     		
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get all roles").entityName("Role").entityId(null).timestamp(LocalDateTime.now()).ownerId(null).build());
+
     		return roles.stream()
     				.map(this::mapToDto)
     				.toList();
@@ -231,6 +243,9 @@ public class RoleServiceImpl implements RoleService {
     		
     		List<Role> roles = roleRepo 
     				.findByAdminIdUserIdAndDeleted(loggedUser.getOwner().getUserId(), NOT_DELETED);
+    		
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get all roles").entityName("Role").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
     		
     		return roles.stream()
     				.map(this::mapToDto)
@@ -253,10 +268,13 @@ public class RoleServiceImpl implements RoleService {
     	
     	if(loggedUser.getOwner()==null && role.getAdminId()==null) // super admin jo role usne create kiy ahe wahideh skta he 
     	{
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get roles by id").entityName("Role").entityId(null).timestamp(LocalDateTime.now()).ownerId(null).build());
+
     		return mapToDto(role);
     	}
     	else if(loggedUser.getOwner().getUserId().equals(role.getAdminId().getUserId()))  // admin sirf apne employe h=ya jo role usene create kiye he wahi dekh skta he , means jiske pas ye perm rahegi wo sirf apne admin ya company ke roles hi dekh skta he
     	{
+    		auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get roles by id").entityName("Role").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
     		return mapToDto(role);
     	}
     	else throw new ResourceNotFoundException(Constants.ROLE_NOT_FOUND);
@@ -298,8 +316,12 @@ public class RoleServiceImpl implements RoleService {
 		if (!role.isEmpty())
 			throw new ResourceAlreadyExistsException(Constants.ROLE_ALREADY_EXIST);
 
-		Role mappedRole = mapToEntity(roleRequest);
-		return mapToDto(roleRepo.save(mappedRole));
+		Role savedRole = roleRepo.save( mapToEntity(roleRequest));
+		
+		    
+		auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Add role").entityName("Role").entityId(savedRole.getRoleId()).timestamp(LocalDateTime.now()).ownerId(null).build());
+		
+		return mapToDto(savedRole);
 
 	}
 
@@ -324,6 +346,10 @@ public class RoleServiceImpl implements RoleService {
 		mappedRole.setAdminId(ownerOfLoggedUser);
 
 		Role addedRole = roleRepo.save(mappedRole);
+		
+		auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Add role").entityName("Role").entityId(addedRole.getRoleId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
+		
 		return mapToDto(addedRole);
 	}
 
@@ -342,6 +368,7 @@ public class RoleServiceImpl implements RoleService {
 //			mappedRole.setCreatedBy(role.get().getCreatedBy());
 //			mappedRole.setRoleId(existRole.getRoleId());
 //			return mapToDto(roleRepo.save(mappedRole));
+
 			return biolerPlateCodeOfUpdate(existRole, roleRequest, loggedUser);
 
 		} else {
@@ -358,6 +385,7 @@ public class RoleServiceImpl implements RoleService {
 			throw new ResourceNotFoundException(Constants.ROLE_NOT_FOUND);
 		} else { // yadi update krte waqt user me permission remove krdi toh role me toh jin
 					// usero ne ye permission kisi or ki de rakhi he th wo bhe delete hojayegi
+			
 
 			return biolerPlateCodeOfUpdate(existRole, roleRequest, loggedUser);
 
@@ -384,7 +412,16 @@ public class RoleServiceImpl implements RoleService {
 
 		existRole.setAdminId(loggedUser.getOwner());
 
-		return mapToDto(roleRepo.save(existRole));
+		Role savedRole = roleRepo.save(existRole);
+		
+		
+		if(loggedUser.getOwner()==null)
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Update role").entityName("Role").entityId(savedRole.getRoleId()).timestamp(LocalDateTime.now()).ownerId(null).build());
+		else
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Update role").entityName("Role").entityId(savedRole.getRoleId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+			 
+		
+		return mapToDto(savedRole);
 	}
 
 

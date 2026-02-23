@@ -3,16 +3,9 @@ package com.company.salestracker.service;
 import java.util.List;
 import java.util.Set;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.Query;
-
-import com.company.salestracker.dto.request.UserRequest;
 import com.company.salestracker.dto.request.UserUpdateRequest;
 import com.company.salestracker.dto.response.PaginationResponse;
 import com.company.salestracker.dto.response.UserResponse;
-import com.company.salestracker.entity.Role;
-import com.company.salestracker.entity.User;
 
 public interface UserService {
 

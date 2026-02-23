@@ -6,11 +6,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Component;
 
 import com.company.salestracker.entity.Permission;
-import com.company.salestracker.entity.Role;
 import com.company.salestracker.repository.PermissionRepository;
-import com.company.salestracker.repository.RoleRepository;
 import com.company.salestracker.validation.annotation.ValidPermissions;
-import com.company.salestracker.validation.annotation.ValidRoles;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;

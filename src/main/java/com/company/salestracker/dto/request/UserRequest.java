@@ -3,7 +3,6 @@ package com.company.salestracker.dto.request;
 
 import java.util.Set;
 
-import com.company.salestracker.entity.Role;
 import com.company.salestracker.util.Constants;
 import com.company.salestracker.validation.annotation.ValidRoles;
 

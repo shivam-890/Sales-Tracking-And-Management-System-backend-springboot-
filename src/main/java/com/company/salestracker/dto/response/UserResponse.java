@@ -2,7 +2,6 @@ package com.company.salestracker.dto.response;
 
 import java.util.Set;
 
-import com.company.salestracker.entity.Role;
 import com.company.salestracker.enums.Status;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;

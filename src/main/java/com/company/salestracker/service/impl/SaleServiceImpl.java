@@ -2,11 +2,10 @@ package com.company.salestracker.service.impl;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.Year;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -19,10 +18,10 @@ import com.company.salestracker.dto.request.GetMonthlyRequest;
 import com.company.salestracker.dto.request.GetYearlySalesRequest;
 import com.company.salestracker.dto.request.PaymentStatusRequest;
 import com.company.salestracker.dto.request.SaleRequest;
-import com.company.salestracker.dto.response.DealResponse;
 import com.company.salestracker.dto.response.PaginationResponse;
 import com.company.salestracker.dto.response.SaleResponse;
 import com.company.salestracker.dto.response.SaleSummaryResponse;
+import com.company.salestracker.entity.AuditLog;
 import com.company.salestracker.entity.Deal;
 import com.company.salestracker.entity.Sale;
 import com.company.salestracker.entity.User;
@@ -34,6 +33,7 @@ import com.company.salestracker.exception.ResourceNotFoundException;
 import com.company.salestracker.repository.DealRepository;
 import com.company.salestracker.repository.SalesRepository;
 import com.company.salestracker.repository.UserRepository;
+import com.company.salestracker.service.AuditService;
 import com.company.salestracker.service.SalesService;
 import com.company.salestracker.util.Constants;
 import com.company.salestracker.util.Helper;
@@ -46,6 +46,7 @@ public class SaleServiceImpl implements SalesService {
     @Autowired private  DealRepository dealRepo;
     @Autowired private UserRepository userRepo;
     @Autowired private Helper helper;
+    @Autowired private AuditService auditService;
     public static final boolean NOT_DELETED = false;
 
     // ================= CREATE =================
@@ -56,7 +57,8 @@ public class SaleServiceImpl implements SalesService {
       	LeadServiceImpl.leadValidations();
 
     	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
-    	
+    	User loggedUser =helper.getLoggedUser();
+
          saleRepo.findByDealAndOwnerUserId(saleRequest.getDeal(),ownerOfLoggedUser.getUserId())
         		        .ifPresent(u -> {  throw new ResourceAlreadyExistsException(Constants.SALE_ALREADY_EXISTS);});  // same deal id se koi sale hematlb sale exist krti he toh exception
                  	
@@ -86,6 +88,8 @@ public class SaleServiceImpl implements SalesService {
 
         Sale savedSales = saleRepo.save(mapToEntity(saleRequest, deal));
 
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Create sale").entityName("Sale").entityId(savedSales.getSaleId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
         return mapToResponse(savedSales);
     }
 
@@ -98,7 +102,8 @@ public class SaleServiceImpl implements SalesService {
 
 
     	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
-    	
+    	User loggedUser =helper.getLoggedUser();
+
         Sale sale = saleRepo.findBySaleIdAndOwnerUserId(saleId,ownerOfLoggedUser.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException(Constants.SALE_NOT_FOUND));      // sale exist or not 
 
@@ -107,6 +112,8 @@ public class SaleServiceImpl implements SalesService {
         
         sale.setPaymentStatus(request.getPaymentStatus());
         saleRepo.save(sale);
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Update sale").entityName("Sale").entityId(sale.getSaleId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
 
         return mapToResponse(sale);
     }
@@ -119,6 +126,7 @@ public class SaleServiceImpl implements SalesService {
       	LeadServiceImpl.leadValidations();
 
     	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+    	User loggedUser =helper.getLoggedUser();
 
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("saleId").descending());
 
@@ -127,6 +135,8 @@ public class SaleServiceImpl implements SalesService {
         if(listOfSale.isEmpty()) throw new ResourceNotFoundException(Constants.SALE_NOT_FOUND);
 
    	    List<SaleResponse> dtoPage = listOfSale.map(this::mapToResponse).toList();
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get All sales sale").entityName("Sale").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
 
    	  return new PaginationResponse<>(
          		dtoPage,
@@ -144,6 +154,7 @@ public class SaleServiceImpl implements SalesService {
     	
       	LeadServiceImpl.leadValidations();
     	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+    	User loggedUser =helper.getLoggedUser();
 
         YearMonth ym = YearMonth.of(getMonthlySaleRequest.getYear(), getMonthlySaleRequest.getMonth());  // pehele humare pas month year int me arhe toh use month or year ki help se hum YearMonth ka object leke jisse humare pr use jo month rahega uski tart and end date nikal sake
 
@@ -161,6 +172,9 @@ public class SaleServiceImpl implements SalesService {
         		.map(Sale::getSaleAmount)
         		.reduce(BigDecimal.ZERO, BigDecimal::add);          // overoll month ka pending sale ka totol amount
         
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get monthly sale").entityName("Sale").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
+        
         return SaleSummaryResponse.builder()
                 .totalAmount(successSalesAmount)
                 .totalSales(Long.valueOf(successSales.size()))
@@ -177,6 +191,7 @@ public class SaleServiceImpl implements SalesService {
       	LeadServiceImpl.leadValidations();
 
     	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+    	User loggedUser =helper.getLoggedUser();
 
         LocalDate start = LocalDate.of(getYearlySalesRequest.getYear(), 1, 1);
         LocalDate end = LocalDate.of(getYearlySalesRequest.getYear(), 12, 31);
@@ -191,6 +206,9 @@ public class SaleServiceImpl implements SalesService {
         BigDecimal pendingSaleAmount = pendingSales.stream()
         		.map(Sale::getSaleAmount)
         		.reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get yearly sale").entityName("Sale").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
         
         return SaleSummaryResponse.builder()
                 .totalAmount(successSalesAmount)
@@ -207,9 +225,13 @@ public class SaleServiceImpl implements SalesService {
       	LeadServiceImpl.leadValidations();
       	
     	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+    	User loggedUser =helper.getLoggedUser();
 
         Sale sale = saleRepo.findBySaleIdAndOwnerUserId(saleId,ownerOfLoggedUser.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException(Constants.SALE_NOT_FOUND));
+        
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get sale by id").entityName("Sale").entityId(sale.getSaleId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
 
         return mapToResponse(sale);
     }
@@ -221,6 +243,8 @@ public class SaleServiceImpl implements SalesService {
 		LeadServiceImpl.leadValidations();
 
     	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+    	User loggedUser =helper.getLoggedUser();
+
 		User commissionUser =	userRepo.findByUserIdAndOwnerUserIdAndDeleted(commissionUserId,ownerOfLoggedUser.getUserId(),NOT_DELETED).orElseThrow(() -> new ResourceNotFoundException(Constants.USER_NOT_FOUND));
 
 
@@ -238,6 +262,9 @@ public class SaleServiceImpl implements SalesService {
         		.map(Sale::getSaleAmount)
         		.reduce(BigDecimal.ZERO, BigDecimal::add);
         
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get yearly sale by user").entityName("Sale").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
+        
         return SaleSummaryResponse.builder()
                 .totalAmount(successSalesAmount)
                 .totalSales(Long.valueOf(successSales.size()))
@@ -253,6 +280,8 @@ public class SaleServiceImpl implements SalesService {
 	public SaleSummaryResponse getMonthlySalesByUser(GetMonthlyRequest getMonthlySaleRequest,String commissionUserId) { // ye particular kis bande ne kitni sale ki he ek month me  uska record
 		LeadServiceImpl.leadValidations();
     	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+    	User loggedUser =helper.getLoggedUser();
+
 		User commissionUser =	userRepo.findByUserIdAndOwnerUserIdAndDeleted(commissionUserId,ownerOfLoggedUser.getUserId(),NOT_DELETED).orElseThrow(() -> new ResourceNotFoundException(Constants.USER_NOT_FOUND));
 
     	
@@ -272,6 +301,9 @@ public class SaleServiceImpl implements SalesService {
         BigDecimal pendingSaleAmount = pendingSales.stream()
         		.map(Sale::getSaleAmount)
         		.reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get monthly sale by user").entityName("Sale").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
         
         return SaleSummaryResponse.builder()
                 .totalAmount(successSalesAmount)

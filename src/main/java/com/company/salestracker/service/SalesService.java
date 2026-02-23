@@ -7,7 +7,6 @@ import com.company.salestracker.dto.request.SaleRequest;
 import com.company.salestracker.dto.response.PaginationResponse;
 import com.company.salestracker.dto.response.SaleResponse;
 import com.company.salestracker.dto.response.SaleSummaryResponse;
-import com.company.salestracker.entity.User;
 
 public interface SalesService {
 	 

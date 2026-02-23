@@ -106,14 +106,17 @@ public class DataLoader implements CommandLineRunner{
 	        Map.entry("DELETE_TARGET", "Delete target"),
 	        
 	        // PASSWORD 
-	        Map.entry("RESET_PASSWORD", "Reset Password")
+	        Map.entry("CHANGE_PASSWORD", "Change Password")
+	     
+	       
+	       
 	       
 			);
 
 	
 	
 	//ye wo permissions he jo assign krna he superAdmin ko 
-    Set<String> assignPermission = Set.of("CREATE_USER","UPDATE_USER","READ_USER", "DELETE_USER","CREATE_ROLE","ASSIGN_ROLE");		       
+  //  Set<String> assignPermission = Set.of("CREATE_USER","UPDATE_USER","READ_USER", "DELETE_USER","CREATE_ROLE","ASSIGN_ROLE");		       
 
 	
 	

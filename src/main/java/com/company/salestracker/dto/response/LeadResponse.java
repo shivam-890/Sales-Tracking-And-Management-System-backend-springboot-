@@ -1,17 +1,9 @@
 package com.company.salestracker.dto.response;
 
-import java.util.Set;
-
-import com.company.salestracker.entity.User;
 import com.company.salestracker.enums.LeadStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;

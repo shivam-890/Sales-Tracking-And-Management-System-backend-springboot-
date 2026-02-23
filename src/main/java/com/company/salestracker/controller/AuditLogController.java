@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.company.salestracker.dto.response.AuditResponse;
-import com.company.salestracker.dto.response.DealResponse;
 import com.company.salestracker.dto.response.PaginationResponse;
 import com.company.salestracker.service.AuditService;
 

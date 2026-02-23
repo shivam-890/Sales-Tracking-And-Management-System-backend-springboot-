@@ -2,11 +2,9 @@ package com.company.salestracker.service;
 
 import com.company.salestracker.dto.request.AssignDealRequest;
 import com.company.salestracker.dto.request.DealRequest;
-import com.company.salestracker.dto.request.LeadRequest;
 import com.company.salestracker.dto.request.UpdateDealRequest;
 import com.company.salestracker.dto.request.UpdateDealStatusRequest;
 import com.company.salestracker.dto.response.DealResponse;
-import com.company.salestracker.dto.response.LeadResponse;
 import com.company.salestracker.dto.response.PaginationResponse;
 
 public interface DealService {

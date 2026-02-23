@@ -1,6 +1,5 @@
 package com.company.salestracker.service;
 
-import java.math.BigDecimal;
 
 import com.company.salestracker.dto.request.GetMonthlyRequest;
 import com.company.salestracker.dto.request.TargetRequest;

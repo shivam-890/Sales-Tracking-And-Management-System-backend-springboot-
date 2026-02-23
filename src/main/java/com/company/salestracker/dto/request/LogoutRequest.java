@@ -1,10 +1,9 @@
 package com.company.salestracker.dto.request;
 
 
-import com.company.salestracker.enums.PaymentStatus;
 import com.company.salestracker.util.Constants;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -14,9 +13,12 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaymentStatusRequest {
+public class LogoutRequest {
 	
-	@NotNull(message = Constants.PAYMENT_STATUS_REQUIRED)
-	private PaymentStatus paymentStatus;
+    @NotEmpty(message = Constants.ACCESS_TOKEN_REQUIRED)
+	private String accessToken;
+    
+    @NotEmpty(message = Constants.REFRESH_TOKEN_REQUIRED)
+	private String refreshtoken;
 
 }

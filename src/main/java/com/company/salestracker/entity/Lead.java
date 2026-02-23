@@ -1,10 +1,5 @@
 package com.company.salestracker.entity;
 
-import java.time.LocalDateTime;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import com.company.salestracker.enums.LeadStatus;
 

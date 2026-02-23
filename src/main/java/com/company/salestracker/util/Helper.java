@@ -8,7 +8,6 @@ import com.company.salestracker.entity.User;
 import com.company.salestracker.exception.ResourceNotFoundException;
 import com.company.salestracker.repository.UserRepository;
 
-import lombok.NoArgsConstructor;
 
 @Component
 public class Helper {

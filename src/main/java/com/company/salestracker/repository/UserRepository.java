@@ -10,7 +10,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import com.company.salestracker.entity.Role;
 import com.company.salestracker.entity.User;
 import com.company.salestracker.enums.Status;
 

@@ -3,8 +3,8 @@ package com.company.salestracker.service.impl;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -15,12 +15,11 @@ import org.springframework.stereotype.Service;
 
 import com.company.salestracker.dto.request.GetMonthlyRequest;
 import com.company.salestracker.dto.request.TargetRequest;
-import com.company.salestracker.dto.response.DealResponse;
 import com.company.salestracker.dto.response.PaginationResponse;
 import com.company.salestracker.dto.response.PerformanceResponse;
 import com.company.salestracker.dto.response.SaleSummaryResponse;
 import com.company.salestracker.dto.response.TargetResponse;
-import com.company.salestracker.entity.Deal;
+import com.company.salestracker.entity.AuditLog;
 import com.company.salestracker.entity.Target;
 import com.company.salestracker.entity.User;
 import com.company.salestracker.exception.BadRequestException;
@@ -28,6 +27,7 @@ import com.company.salestracker.exception.ResourceAlreadyExistsException;
 import com.company.salestracker.exception.ResourceNotFoundException;
 import com.company.salestracker.repository.TargetRepository;
 import com.company.salestracker.repository.UserRepository;
+import com.company.salestracker.service.AuditService;
 import com.company.salestracker.service.SalesService;
 import com.company.salestracker.service.TargetService;
 import com.company.salestracker.util.Constants;
@@ -40,6 +40,7 @@ public class TargetServiceImpl implements TargetService {
 	 @Autowired private TargetRepository targetRepo;
 	  @Autowired  private  UserRepository userRepo;
 	  @Autowired private SalesService salesService;
+	  @Autowired private AuditService auditService;
 	  @Autowired private Helper helper;
 	  private static final boolean NOT_DELETED = false;
 
@@ -49,6 +50,8 @@ public class TargetServiceImpl implements TargetService {
 	    	LeadServiceImpl.leadValidations();
 
               User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+ 	    	 User loggedUser = helper.getLoggedUser();
+
 	    	
 	        User user = userRepo.findByUserIdAndOwnerUserIdAndDeleted(tragetRequest.getUserId(),ownerOfLoggedUser.getUserId(),NOT_DELETED)
 	                .orElseThrow(() -> new ResourceNotFoundException(Constants.USER_NOT_FOUND));
@@ -65,8 +68,12 @@ public class TargetServiceImpl implements TargetService {
 
 	        Target target = mapToEntity(tragetRequest);
 	        target.setUser(user);
+	        Target savedTarget = targetRepo.save(target);
+	        
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Target create").entityName("Target").entityId(savedTarget.getTargetId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 
-	        return mapToResponse(targetRepo.save(target));
+
+	        return mapToResponse(savedTarget);
 	    }
 
 	    // ============================= Update Target =============================
@@ -74,6 +81,7 @@ public class TargetServiceImpl implements TargetService {
 	    public TargetResponse updateTarget(String targetId, TargetRequest tragetRequest) {
 	    	LeadServiceImpl.leadValidations();
             User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+	    	 User loggedUser = helper.getLoggedUser();
 
 
 	        Target existing = targetRepo.findByTargetIdAndOwnerUserIdAndDeleted(targetId,ownerOfLoggedUser.getUserId(),NOT_DELETED)
@@ -89,6 +97,9 @@ public class TargetServiceImpl implements TargetService {
 	        existing.setTargetMonth(tragetRequest.getTargetMonth());
 	        existing.setTargetYear(tragetRequest.getTargetYear());
 	        existing.setTargetAmount(tragetRequest.getTargetAmount());
+	        
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Target update").entityName("Target").entityId(existing.getTargetId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
 
 	        return mapToResponse(targetRepo.save(existing));
 	    }
@@ -98,10 +109,13 @@ public class TargetServiceImpl implements TargetService {
 	    public TargetResponse getTargetById(String targetId) {
 	    	LeadServiceImpl.leadValidations();
             User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+	    	 User loggedUser = helper.getLoggedUser();
 
 
 	        Target target = targetRepo.findByTargetIdAndOwnerUserIdAndDeleted(targetId,ownerOfLoggedUser.getUserId(),NOT_DELETED)
 	                .orElseThrow(() -> new ResourceNotFoundException(Constants.TARGET_NOT_FOUND));
+	        
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get Target by id").entityName("Target").entityId(target.getTargetId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 
 	        return mapToResponse(target);
 	    }
@@ -111,12 +125,15 @@ public class TargetServiceImpl implements TargetService {
 	    public PaginationResponse<TargetResponse> getAllTargets(int pageNumber,int pageSize) {
 	    	LeadServiceImpl.leadValidations();
             User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+	    	 User loggedUser = helper.getLoggedUser();
 
 	   	 Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("targetId").descending());
       	 
   	      Page<Target> listOfTarget = targetRepo.findByOwnerUserIdAndDeleted(ownerOfLoggedUser.getUserId(),NOT_DELETED,pageable);
           
   	    List<TargetResponse> dtoPage = listOfTarget.map(this::mapToResponse).toList();
+
+		auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get All Target").entityName("Target").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 
 
           return new PaginationResponse<>(
@@ -134,6 +151,7 @@ public class TargetServiceImpl implements TargetService {
 	    	LeadServiceImpl.leadValidations();
 
 	    	   User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+	 	    	 User loggedUser = helper.getLoggedUser();
 
 
 		        Target existing = targetRepo.findByTargetIdAndOwnerUserIdAndDeleted(targetId,ownerOfLoggedUser.getUserId(),NOT_DELETED)
@@ -145,6 +163,9 @@ public class TargetServiceImpl implements TargetService {
 	        
 	        if(existing.getTargetYear() <= currentYear && existing.getTargetMonth() <= currentMonth)
 	        	 throw new BadRequestException(Constants.CANNOT_DELETE_TARGET);
+	        
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Delete Target").entityName("Target").entityId(existing.getTargetId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
 
 
 	        targetRepo.softDeleteTarget(targetId);
@@ -157,6 +178,7 @@ public class TargetServiceImpl implements TargetService {
 	    	
 	    	LeadServiceImpl.leadValidations();
             User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+	    	 User loggedUser = helper.getLoggedUser();
 
 			User user =	userRepo.findByUserIdAndOwnerUserIdAndDeleted(userId,ownerOfLoggedUser.getUserId(),NOT_DELETED).orElseThrow(() -> new ResourceNotFoundException(Constants.USER_NOT_FOUND));
 
@@ -177,6 +199,8 @@ public class TargetServiceImpl implements TargetService {
 	                .divide(target.getTargetAmount(), 4, RoundingMode.HALF_UP)
 	                .multiply(BigDecimal.valueOf(100));
 	        
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action(" Get Individual performance").entityName("Target").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
 	        
 	        return PerformanceResponse.builder()
 	        		   .commissionUserId(user.getUserId())
@@ -195,6 +219,7 @@ public class TargetServiceImpl implements TargetService {
 	    public PerformanceResponse getTeamPerformance(GetMonthlyRequest getMonthlyRequest) {
 	    	LeadServiceImpl.leadValidations();
             User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
+	    	 User loggedUser = helper.getLoggedUser();
 
 
 	        List<Target> targets = targetRepo
@@ -215,6 +240,9 @@ public class TargetServiceImpl implements TargetService {
 	        BigDecimal achivedSalePercentCompareToTarget = totalTeamAchieved
 	                .divide(totalTarget, 4, RoundingMode.HALF_UP)
 	                .multiply(BigDecimal.valueOf(100));
+	        
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action(" Get Team performance").entityName("Target").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
 	        
 	        return PerformanceResponse.builder()
 	                   .achivedAmount(totalTeamAchieved)

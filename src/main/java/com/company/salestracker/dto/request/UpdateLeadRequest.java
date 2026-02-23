@@ -1,12 +1,9 @@
 package com.company.salestracker.dto.request;
 
-import java.util.Set;
 
-import com.company.salestracker.enums.LeadStatus;
 import com.company.salestracker.util.Constants;
 
 import jakarta.persistence.Column;
-import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

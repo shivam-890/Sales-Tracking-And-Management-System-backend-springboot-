@@ -1,6 +1,5 @@
 package com.company.salestracker.controller;
 
-import java.math.BigDecimal;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -11,22 +10,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.company.salestracker.dto.request.GetMonthlyRequest;
-import com.company.salestracker.dto.request.GetYearlySalesRequest;
-import com.company.salestracker.dto.request.PaymentStatusRequest;
-import com.company.salestracker.dto.request.SaleRequest;
+
 import com.company.salestracker.dto.request.TargetRequest;
 import com.company.salestracker.dto.response.ApiResponse;
 import com.company.salestracker.dto.response.PaginationResponse;
 import com.company.salestracker.dto.response.PerformanceResponse;
-import com.company.salestracker.dto.response.SaleResponse;
-import com.company.salestracker.dto.response.SaleSummaryResponse;
+
 import com.company.salestracker.dto.response.TargetResponse;
-import com.company.salestracker.dto.response.UserResponse;
 import com.company.salestracker.service.TargetService;
 import com.company.salestracker.util.Constants;
 import com.company.salestracker.util.ResponseUtil;

@@ -1,8 +1,6 @@
 package com.company.salestracker.security;
 
-import java.io.ObjectInputFilter.Status;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -11,7 +9,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.company.salestracker.entity.Role;
 import com.company.salestracker.entity.User;
 import com.company.salestracker.exception.BadRequestException;
 import com.company.salestracker.exception.ResourceNotFoundException;

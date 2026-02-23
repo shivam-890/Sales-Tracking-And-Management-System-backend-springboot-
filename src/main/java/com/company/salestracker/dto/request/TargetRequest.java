@@ -1,13 +1,6 @@
 package com.company.salestracker.dto.request;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.Set;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import com.company.salestracker.entity.User;
 import com.company.salestracker.util.Constants;
 
 import jakarta.validation.constraints.DecimalMin;

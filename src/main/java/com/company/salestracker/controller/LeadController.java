@@ -1,6 +1,5 @@
 package com.company.salestracker.controller;
 
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -19,17 +18,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.company.salestracker.dto.request.AssignLeadRequest;
-import com.company.salestracker.dto.request.AssignRemoveRoleRequest;
+
 import com.company.salestracker.dto.request.LeadRequest;
 import com.company.salestracker.dto.request.UpdateLeadRequest;
 import com.company.salestracker.dto.request.UpdateLeadStatusRequest;
-import com.company.salestracker.dto.request.UserRequest;
-import com.company.salestracker.dto.request.UserUpdateRequest;
+
 import com.company.salestracker.dto.response.ApiResponse;
 import com.company.salestracker.dto.response.LeadActivityResponse;
 import com.company.salestracker.dto.response.LeadResponse;
 import com.company.salestracker.dto.response.PaginationResponse;
-import com.company.salestracker.dto.response.UserResponse;
 import com.company.salestracker.service.LeadService;
 import com.company.salestracker.util.Constants;
 import com.company.salestracker.util.ResponseUtil;

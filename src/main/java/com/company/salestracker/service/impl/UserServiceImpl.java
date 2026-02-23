@@ -1,9 +1,8 @@
 package com.company.salestracker.service.impl;
 
-import java.util.ArrayList;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -14,20 +13,18 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import com.company.salestracker.dto.request.RoleRequest;
-import com.company.salestracker.dto.request.UserRequest;
 import com.company.salestracker.dto.request.UserUpdateRequest;
 import com.company.salestracker.dto.response.PaginationResponse;
 import com.company.salestracker.dto.response.UserResponse;
+import com.company.salestracker.entity.AuditLog;
 import com.company.salestracker.entity.Role;
 import com.company.salestracker.entity.User;
 import com.company.salestracker.enums.Status;
 import com.company.salestracker.exception.AccessDeniedException;
-import com.company.salestracker.exception.BadRequestException;
-import com.company.salestracker.exception.ResourceAlreadyExistsException;
 import com.company.salestracker.exception.ResourceNotFoundException;
 import com.company.salestracker.repository.RoleRepository;
 import com.company.salestracker.repository.UserRepository;
+import com.company.salestracker.service.AuditService;
 import com.company.salestracker.service.UserService;
 import com.company.salestracker.util.Constants;
 import com.company.salestracker.util.Helper;
@@ -41,7 +38,8 @@ public class UserServiceImpl implements UserService {
 	private RoleRepository roleRepo;
 	@Autowired
 	private Helper helper;
-	
+	@Autowired
+	private AuditService auditService;
     private static final boolean NOT_DELETED = false;
 
 
@@ -68,6 +66,11 @@ public class UserServiceImpl implements UserService {
 	    	throw new ResourceNotFoundException(Constants.USER_NOT_FOUND);
 	    }
 	    
+		if(loggedUser.getOwner()==null)
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get all users").entityName("User").entityId(null).timestamp(LocalDateTime.now()).ownerId(null).build());
+		else
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get all users").entityName("User").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+	    
 	    List<UserResponse> dtoPage = listOfUser.map(this::mapToDto).toList();
 	    return new PaginationResponse<>(
     		    dtoPage,
@@ -85,7 +88,8 @@ public class UserServiceImpl implements UserService {
 		
 //	    User loggedUser = helper.getLoggedUser();
         User user =userRepo.findByUserIdAndDeleted(userId,false).orElseThrow(() -> new ResourceNotFoundException(Constants.USER_NOT_FOUND));
-          
+	    User loggedUser = helper.getLoggedUser();    
+
         userValidation(user);
 	    
 //	     if(loggedUser.getOwner() == null)
@@ -101,6 +105,11 @@ public class UserServiceImpl implements UserService {
 //	    	    	           throw new ResourceNotFoundException(Constants.USER_NOT_FOUND);
 //	    	    		  }
 //	     }
+        
+        if(loggedUser.getOwner()==null)
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get user by id").entityName("User").entityId(user.getUserId()).timestamp(LocalDateTime.now()).ownerId(null).build());
+		else
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get users by id").entityName("User").entityId(user.getUserId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 		 return mapToDto(user);
 	}
 	
@@ -133,6 +142,13 @@ public class UserServiceImpl implements UserService {
 			    	 throw new ResourceNotFoundException(Constants.ROLE_NOT_FOUND);
 			     } 
 		}
+		
+		
+		 if(loggedUser.getOwner()==null)
+				auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get user by roleid").entityName("User").entityId(null).timestamp(LocalDateTime.now()).ownerId(null).build());
+			else
+				auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get users by roleid").entityName("User").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+		
 		return users.stream().map(this::mapToDto).toList();
 	}
 // ==================================== Get user by Role Id ============================================
@@ -161,6 +177,12 @@ public class UserServiceImpl implements UserService {
 		    else {
 		        throw new AccessDeniedException("You are not authorized to view pending users");
 		    }
+		    
+
+	        if(loggedUser.getOwner()==null)
+				auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get Pendng users").entityName("User").entityId(null).timestamp(LocalDateTime.now()).ownerId(null).build());
+			else
+				auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get Pendng users").entityName("User").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 
 		    return users.stream()
 		            .map(this::mapToDto)
@@ -175,10 +197,18 @@ public class UserServiceImpl implements UserService {
 		
 //		User loggedUser = helper.getLoggedUser();
 		User user =	userRepo.findByUserIdAndDeleted(userId,NOT_DELETED).orElseThrow(() -> new ResourceNotFoundException(Constants.USER_NOT_FOUND));
-            
+		 User loggedUser = helper.getLoggedUser();
+
 		userValidation(user);
 		user.setUserName(userUpdateRequest.getUserName());
 		user.setUserPhone(userUpdateRequest.getUserPhone());
+		userRepo.save(user);
+		
+		   if(loggedUser.getOwner()==null)
+				auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Update user by id").entityName("User").entityId(user.getUserId()).timestamp(LocalDateTime.now()).ownerId(null).build());
+			else
+				auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Update user by id").entityName("User").entityId(user.getUserId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+		   
 		return mapToDto(user);
 		
 //		if(loggedUser.getOwner() == null)                                        // logged user super admin he
@@ -213,11 +243,14 @@ public class UserServiceImpl implements UserService {
 		
 		userValidation(user);
 		
+	
 		
 		if (user.getUserId().equals(user.getOwner().getUserId())) {
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Delete user by id").entityName("User").entityId(user.getUserId()).timestamp(LocalDateTime.now()).ownerId(null).build());
 			userRepo.softDeleteByOwnerId(userId);
 			return true;
 		} else {
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Delete user by id").entityName("User").entityId(user.getUserId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 			userRepo.softDeleteByUserId(userId);
 			return true;
 		}
@@ -274,13 +307,17 @@ public class UserServiceImpl implements UserService {
 			  throw new AccessDeniedException(Constants.YOU_CANNOT_ACTIVATE_ITSELF);
 		
 	userValidation(user);
+	
+
 		
 		
 		if (user.getUserId().equals(user.getOwner().getUserId())) {
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Activate user").entityName("User").entityId(userId).timestamp(LocalDateTime.now()).ownerId(null).build());
 		    userRepo.activateUserByOwner(userId);
 			return true;
 		} else {
 		    userRepo.activateUserByUserId(userId);
+		    auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Activate user").entityName("User").entityId(userId).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 			return true;
 		}
 //		
@@ -337,9 +374,11 @@ public class UserServiceImpl implements UserService {
 		
 		
 		if (user.getUserId().equals(user.getOwner().getUserId())) {
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Deactivate user").entityName("User").entityId(userId).timestamp(LocalDateTime.now()).ownerId(null).build());
 		    userRepo.deactivateUserByOwner(userId);
 			return true;
 		} else {
+		    auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Deactivate user").entityName("User").entityId(userId).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 		    userRepo.deactivateUserByUserId(userId);
 			return true;
 		}
@@ -362,6 +401,14 @@ public class UserServiceImpl implements UserService {
 	    
 	    assignRoles.addAll(user.getRoles()); // jo user ke purrane role he unme hum new roles add krke set krdenge
 		user.setRoles(assignRoles);
+		
+		
+		 if(loggedUser.getOwner()==null)
+				auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Assign user role").entityName("User").entityId(user.getUserId()).timestamp(LocalDateTime.now()).ownerId(null).build());
+			else
+				auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Assign user role").entityName("User").entityId(user.getUserId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+		
+		
 		userRepo.save(user);
 		return true;
 	}
@@ -391,6 +438,11 @@ public class UserServiceImpl implements UserService {
         loggedUserRoles.removeAll(removeRoles);  
 		    
         user.setRoles(loggedUserRoles);
+        
+        if(loggedUser.getOwner()==null)
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("remove user role").entityName("User").entityId(user.getUserId()).timestamp(LocalDateTime.now()).ownerId(null).build());
+		else
+			auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("remove user role").entityName("User").entityId(user.getUserId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 	    userRepo.save(user);
 	    return true;
 	}

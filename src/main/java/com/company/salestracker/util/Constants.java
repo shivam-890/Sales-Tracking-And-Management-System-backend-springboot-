@@ -156,5 +156,13 @@ public class Constants {
 	 public final static String OLD_PASSWORD_INCORRECT = "Old password incorrect";
 	 public final static String RESET_PASSWORD = "Password Reset successfully";
 	 public final static String OTP_SEND_SUCCESSFULLY = "Otp Send successfully";
+	 public final static String OTP_EMPTY = "Otp cannot empty";
+	 public final static String INVALID_OTP = "Invalid Otp";
+	 public final static String EXPIRED_OTP = "Otp Expired";
+	 public final static String OTP_VARIFIED = "Otp Varified successfully";
+	 public final static String INVALID_FORGET_REQUEST = "Invalid forget password request,Resend otp";
+	 public final static String REFRESH_TOKEN_REQUIRED = "Refresh token cannot be empty";
+	 public final static String ACCESS_TOKEN_REQUIRED = "Access token cannot be empty";
+	 public final static String LOGOUT_SUCCESSFULLY = "logout succesfuly";
 	
 }

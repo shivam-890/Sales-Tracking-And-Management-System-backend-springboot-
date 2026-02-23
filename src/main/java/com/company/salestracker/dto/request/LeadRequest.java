@@ -1,21 +1,10 @@
 package com.company.salestracker.dto.request;
 
-import java.util.Set;
 
-import com.company.salestracker.entity.User;
-import com.company.salestracker.enums.LeadStatus;
 import com.company.salestracker.util.Constants;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

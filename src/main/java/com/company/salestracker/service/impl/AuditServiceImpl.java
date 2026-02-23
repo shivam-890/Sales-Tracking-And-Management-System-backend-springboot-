@@ -27,9 +27,6 @@ public class AuditServiceImpl implements AuditService{
 	public AuditLog createAuditLog(AuditLog auditLog) {
 		
     	LeadServiceImpl.leadValidations();
-
-		
-		
 		
 		return auditLogRepo.save(auditLog);
 	}
@@ -41,7 +38,7 @@ public class AuditServiceImpl implements AuditService{
 
 		User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
 
-     	 Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("dealId").descending());
+     	 Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("auditId").descending());
      	 
   	      Page<AuditLog> listOfAudit = auditLogRepo.findByOwnerId_UserId(ownerOfLoggedUser.getUserId(),pageable);
           

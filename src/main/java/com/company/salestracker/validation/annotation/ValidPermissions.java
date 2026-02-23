@@ -5,7 +5,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import com.company.salestracker.validation.validator.PermissionValidator;
-import com.company.salestracker.validation.validator.RoleValidator;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

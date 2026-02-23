@@ -1,14 +1,12 @@
 package com.company.salestracker.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -17,19 +15,20 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.company.salestracker.dto.request.ForgetResetPasswordRequest;
+import com.company.salestracker.dto.request.LogoutRequest;
 import com.company.salestracker.dto.request.ResetPasswordRequest;
-import com.company.salestracker.dto.request.RoleRequest;
 import com.company.salestracker.dto.request.UserRequest;
 import com.company.salestracker.dto.response.JwtResponse;
 import com.company.salestracker.dto.response.UserResponse;
+import com.company.salestracker.entity.Otp;
 import com.company.salestracker.entity.RefreshToken;
 import com.company.salestracker.entity.Role;
 import com.company.salestracker.entity.User;
 import com.company.salestracker.enums.Status;
-import com.company.salestracker.exception.AccessDeniedException;
 import com.company.salestracker.exception.BadRequestException;
 import com.company.salestracker.exception.ResourceAlreadyExistsException;
-import com.company.salestracker.exception.UnauthorizedException;
+import com.company.salestracker.repository.OtpRepository;
 import com.company.salestracker.repository.RefreshTokenRepository;
 import com.company.salestracker.repository.RoleRepository;
 import com.company.salestracker.repository.UserRepository;
@@ -42,7 +41,6 @@ import com.company.salestracker.service.RoleService;
 import com.company.salestracker.util.Constants;
 import com.company.salestracker.util.Helper;
 
-import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -57,6 +55,8 @@ public class AuthServiceImpl implements AuthService {
 	@Autowired private CustomUserDetailsService customUserDetailsService;
 	@Autowired private RefreshTokenService refreshTokenService;
 	@Autowired private EmailService emailService;
+	@Autowired private OtpRepository otpRepo;
+	
 	
 	private final AuthenticationManager AuthenticationManager;
 	private final JwtTokenProvider tokenProvider;
@@ -89,6 +89,8 @@ public class AuthServiceImpl implements AuthService {
 		String refreshToken =  tokenProvider.generateRefreshToken(email);
 		
 	    refreshTokenService.createRefreshToken(email, refreshToken);
+	    
+	    
 
 		
 		return JwtResponse.builder().refreshToken(refreshToken).Token(accessToken).build();
@@ -205,10 +207,6 @@ public class AuthServiceImpl implements AuthService {
 		return mapToDto(userRepo.save(savedUser));
 	}
 
-
-
-
-
 	@Override
 	public String generateAccessTokenByRefreshToken(Map<String, String> request) {
 		
@@ -233,28 +231,71 @@ public class AuthServiceImpl implements AuthService {
 
 		User loggedUser = helper.getLoggedUser();
 
-		
-		if(!loggedUser.getUserEmail().equals(resetPasswordRequest.getUserEmail()))
-		              throw new BadRequestException(Constants.EMAIL_ERROR);
-		
-		if(!resetPasswordRequest.getConfirmPassword().equals(resetPasswordRequest.getNewPassword()))
-			          throw new BadRequestException(Constants.CONFIRM_PASS_MISMATCH);
-		
+		if (!loggedUser.getUserEmail().equals(resetPasswordRequest.getUserEmail()))
+			throw new BadRequestException(Constants.EMAIL_ERROR);
 		
 		if(!encoder.matches( resetPasswordRequest.getOldPassword(),loggedUser.getUserPassword()))
 	                  throw new BadRequestException(Constants.OLD_PASSWORD_INCORRECT);
 		
-		
-	int affectedRows = userRepo.resetPassword(encoder.encode(resetPasswordRequest.getNewPassword()), loggedUser.getUserId());
-		
-      	if(affectedRows == 1)	
-      	{
-      		 emailService.send(loggedUser.getUserEmail(), "Reset Password", "Password reset SuccessFully");
-	    	return true;
-      	}
-	    else throw new BadRequestException("Password is not reset some technical issue");
+		return changePassword(resetPasswordRequest.getUserEmail(),resetPasswordRequest.getNewPassword(),resetPasswordRequest.getConfirmPassword());
 		
 	}
+
+	@Override
+	public boolean forgetPassword(ForgetResetPasswordRequest forgetResetPasswordRequest) {
+		
+		Otp otp = otpRepo.findByUserEmail(forgetResetPasswordRequest.getUserEmail())
+				       .orElseThrow(() -> new BadRequestException(Constants.INVALID_FORGET_REQUEST));  
+		System.out.println("hello");
+		if(!otp.getUsed())                                                // jab otp varified ho chuka hoga toh otp entity me used ki value true ho chuki hogi yadi value true to pas reset
+			throw new BadRequestException(Constants.INVALID_FORGET_REQUEST);
+		System.out.println("hello1");
+		
+		if (LocalDateTime.now().isAfter(otp.getExpiryTime().plusMinutes(5)))     // or otp ka jo expiry time rehta he  usse aage ke 5 min tk pass change kr skte
+			throw new BadRequestException(Constants.INVALID_FORGET_REQUEST);
+		System.out.println("hello2");
+			  
+			  
+		otpRepo.deleteById(otp.getOtpId());                                  // or then jb sb kooch sahi hotoh otp del krke pass change hojaygea
+		
+		
+		return changePassword(forgetResetPasswordRequest.getUserEmail(),forgetResetPasswordRequest.getNewPassword(),forgetResetPasswordRequest.getConfirmPassword());
+		
+	}
+
+	@Transactional
+	public boolean changePassword(String email,String newPassword,String confirmPassword)
+	{
+		
+		User loggedUser = helper.getLoggedUser();
+
+	
+
+		if (!confirmPassword.equals(newPassword))
+			throw new BadRequestException(Constants.CONFIRM_PASS_MISMATCH);
+
+		int affectedRows = userRepo.resetPassword(encoder.encode(newPassword),
+				loggedUser.getUserId());
+
+		if (affectedRows == 1) {
+			emailService.send(loggedUser.getUserEmail(), "Reset Password", "Password reset SuccessFully");
+			return true;
+		} else
+			throw new BadRequestException("Password is not reset some technical issue");
+		
+	}
+
+
+
+
+	@Override
+	public void logoutUser(LogoutRequest logoutRequest) {
+		
+		refreshTokenRepository.deleteByToken(logoutRequest.getRefreshtoken());
+		
+	}
+	
+	
 }
 
 

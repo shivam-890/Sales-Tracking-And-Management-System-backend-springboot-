@@ -3,8 +3,7 @@ package com.company.salestracker.dto.request;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-import com.company.salestracker.entity.Lead;
-import com.company.salestracker.entity.User;
+
 import com.company.salestracker.util.Constants;
 
 import jakarta.validation.constraints.DecimalMin;

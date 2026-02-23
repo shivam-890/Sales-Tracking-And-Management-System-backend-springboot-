@@ -1,5 +1,6 @@
 package com.company.salestracker.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import com.company.salestracker.dto.request.UpdateLeadStatusRequest;
 import com.company.salestracker.dto.response.LeadActivityResponse;
 import com.company.salestracker.dto.response.LeadResponse;
 import com.company.salestracker.dto.response.PaginationResponse;
+import com.company.salestracker.entity.AuditLog;
 import com.company.salestracker.entity.Lead;
 import com.company.salestracker.entity.LeadActivity;
 import com.company.salestracker.entity.User;
@@ -26,6 +28,7 @@ import com.company.salestracker.exception.ResourceNotFoundException;
 import com.company.salestracker.repository.LeadActivityRepository;
 import com.company.salestracker.repository.LeadRepository;
 import com.company.salestracker.repository.UserRepository;
+import com.company.salestracker.service.AuditService;
 import com.company.salestracker.service.LeadService;
 import com.company.salestracker.util.Constants;
 import com.company.salestracker.util.Helper;
@@ -39,7 +42,13 @@ public class LeadServiceImpl implements LeadService {
     @Autowired
     private LeadActivityRepository leadActivityRepository;
     @Autowired
+    private AuditService auditService;
+//    @Autowired
     private static Helper helper;
+    
+    public LeadServiceImpl(Helper helper) {
+        LeadServiceImpl.helper = helper;
+    }
     private static final boolean NOT_DELETED = false;
   
     // ========================================== CREATE LEAD ==================================================
@@ -47,6 +56,8 @@ public class LeadServiceImpl implements LeadService {
     @Override
     public LeadResponse createLead(LeadRequest leadRequest) {
     	User ownerOfloggedUser = helper.getOwnerOfLoggedUser();
+    	User loggedUser = helper.getLoggedUser();
+
     	User assignToUser = null;
     	
     	leadValidations();
@@ -64,6 +75,8 @@ public class LeadServiceImpl implements LeadService {
         Lead savedLead = leadRepo.save(lead);
         
         addLeadActivity(savedLead, "Lead add", "new lead add");
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Create lead").entityName("Lead").entityId(savedLead.getLeadId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
         
         return mapToDto(savedLead);
     }
@@ -74,6 +87,8 @@ public class LeadServiceImpl implements LeadService {
     public LeadResponse updateLead(String leadId, UpdateLeadRequest updateLeadRequest) {
     	
     	User ownerOfloggedUser = helper.getOwnerOfLoggedUser();
+    	User loggedUser = helper.getLoggedUser();
+
     	
     	leadValidations();
     	if ((updateLeadRequest.getLeadName() == null || updateLeadRequest.getLeadName().isBlank()) &&
@@ -92,6 +107,7 @@ public class LeadServiceImpl implements LeadService {
         Lead updatedLead = leadRepo.save(lead);
         
         addLeadActivity(updatedLead, "Lead update", "lead updated");
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Update Lead").entityName("Lead").entityId(updatedLead.getLeadId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 
 
         return mapToDto(updatedLead);
@@ -114,6 +130,8 @@ public class LeadServiceImpl implements LeadService {
  	    List<LeadResponse> dtoPage = listOfLead.map(this::mapToDto).toList();
 
         addLeadActivity(null, "get al leads ", "get all leads");
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get all leads").entityName("Lead").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
 
  	    
          return new PaginationResponse<>(
@@ -131,6 +149,8 @@ public class LeadServiceImpl implements LeadService {
     @Override
     public PaginationResponse<LeadResponse> getByAssignTo(String assignTo,int pageNumber,int pageSize) {
     	User ownerOfloggedUser = helper.getOwnerOfLoggedUser();
+    	User loggedUser = helper.getLoggedUser();
+
     	
     	 userRepo.findByUserIdAndOwnerUserIdAndDeleted(assignTo,ownerOfloggedUser.getUserId(),NOT_DELETED)                           
   	           .orElseThrow(() -> new ResourceNotFoundException(Constants.ASSIGNED_USER_NOT_FOUND));   
@@ -147,6 +167,8 @@ public class LeadServiceImpl implements LeadService {
   	    List<LeadResponse> dtoPage = listOfLead.map(this::mapToDto).toList();
 
         addLeadActivity(null, "get leads by assign to", "get leads by assign to");
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get lead by assign to").entityName("Lead").entityId(null).ownerId(loggedUser.getOwner()).build());
+
 
   	    
           return new PaginationResponse<>(
@@ -163,13 +185,16 @@ public class LeadServiceImpl implements LeadService {
     @Override
     public LeadResponse getLeadById(String leadId) {
     	User ownerOfloggedUser = helper.getOwnerOfLoggedUser();
-    	
+    	User loggedUser = helper.getLoggedUser();
+
     	leadValidations();
 
         Lead lead = leadRepo.findByLeadIdAndOwnerUserIdAndDeleted(leadId,ownerOfloggedUser.getUserId(),NOT_DELETED)
                 .orElseThrow(() -> new ResourceNotFoundException(Constants.LEAD_NOT_FOUND));
         
         addLeadActivity(lead, "get leads by lead id", "get leads by lead id");
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get lead by id").entityName("Lead").entityId(lead.getLeadId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
+
 
 
         return mapToDto(lead);
@@ -180,6 +205,8 @@ public class LeadServiceImpl implements LeadService {
     @Override
     public boolean deleteLead(String leadId) {
     	User ownerOfloggedUser = helper.getOwnerOfLoggedUser();
+    	User loggedUser = helper.getLoggedUser();
+
 
     	Lead lead = leadRepo.findByLeadIdAndOwnerUserIdAndDeleted(leadId,ownerOfloggedUser.getUserId(),NOT_DELETED)
                 .orElseThrow(() -> new ResourceNotFoundException(Constants.LEAD_NOT_FOUND));
@@ -188,12 +215,14 @@ public class LeadServiceImpl implements LeadService {
         
         if(!lead.getStatus().equals(LeadStatus.NEW))
    		 throw new BadRequestException(Constants.CANNOT_DELETE_LEAD); 
-        
-        addLeadActivity(lead, "delete lead", "delete lead");
+
 
         lead.setDeleted(true);
         lead.setStatus(LeadStatus.LOST);
         leadRepo.save(lead);
+        
+        addLeadActivity(lead, "delete lead", "delete lead");
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Delete lead").entityName("Lead").entityId(leadId).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
         return true;
     }
 
@@ -203,6 +232,8 @@ public class LeadServiceImpl implements LeadService {
     public LeadResponse updateStatus(String leadId,UpdateLeadStatusRequest updateLeadStatusRequest) {
     	
     	User ownerOfloggedUser = helper.getOwnerOfLoggedUser();
+    	User loggedUser = helper.getLoggedUser();
+
 
     	Lead lead = leadRepo.findByLeadIdAndOwnerUserIdAndDeleted(leadId,ownerOfloggedUser.getUserId(),NOT_DELETED)
                 .orElseThrow(() -> new ResourceNotFoundException(Constants.LEAD_NOT_FOUND));
@@ -219,6 +250,7 @@ public class LeadServiceImpl implements LeadService {
         lead.setStatus(updateLeadStatusRequest.getLeadStatus());
         Lead updatedLead = leadRepo.save(lead);
         addLeadActivity(updatedLead, "update lead status", "update lead status");
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Update lead status").entityName("Lead").entityId(lead.getLeadId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 
         
         return mapToDto(updatedLead);
@@ -230,6 +262,8 @@ public class LeadServiceImpl implements LeadService {
     public LeadResponse assignLeadById(AssignLeadRequest assignLeadRequest, String leadId) {
 
     	User ownerOfloggedUser = helper.getOwnerOfLoggedUser();
+    	User loggedUser = helper.getLoggedUser();
+
 
     	Lead lead = leadRepo.findByLeadIdAndOwnerUserIdAndDeleted(leadId,ownerOfloggedUser.getUserId(),NOT_DELETED)
                 .orElseThrow(() -> new ResourceNotFoundException(Constants.LEAD_NOT_FOUND));
@@ -242,6 +276,7 @@ public class LeadServiceImpl implements LeadService {
         Lead updatedLead = leadRepo.save(lead);
         
         addLeadActivity(updatedLead, "assign lead", "assign lead to employe");
+        auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Assign lead").entityName("Lead").entityId(lead.getLeadId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 
 
         return mapToDto(updatedLead);
@@ -300,7 +335,8 @@ public class LeadServiceImpl implements LeadService {
     public void addLeadActivity(Lead lead,String activityType,String notes) {
     	User loggedUser = helper.getLoggedUser();
     	
-    	leadActivityRepository.save(LeadActivity.builder()
+
+    LeadActivity activity =	leadActivityRepository.save(LeadActivity.builder()
 	            .lead(lead)
 	            .activityType(activityType)
 	            .notes(notes)
@@ -308,6 +344,7 @@ public class LeadServiceImpl implements LeadService {
 	            .owner(loggedUser.getOwner())
 	            .deleted(NOT_DELETED)
 	            .build());
+    auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Add lead Activity").entityName("LeadActivity").entityId(activity.getLeadActivityid()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 	}
     
     //======================================== GET LEAD ACTIVITY =====================================================
@@ -316,6 +353,8 @@ public class LeadServiceImpl implements LeadService {
 	public PaginationResponse<LeadActivityResponse> getLeadActivity(int pageNumber, int pageSize) {
 	
     	User ownerOfloggedUser = helper.getOwnerOfLoggedUser();
+    	User loggedUser = helper.getLoggedUser();
+
 
 	leadValidations();
 
@@ -327,6 +366,9 @@ public class LeadServiceImpl implements LeadService {
     	
     
     List<LeadActivityResponse> dtoPage = listOfLead.map(this::mapToActivityDto).toList();
+    
+
+    auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("get lead Activity").entityName("LeadActivity").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 
     return new PaginationResponse<>(
   		  dtoPage,
