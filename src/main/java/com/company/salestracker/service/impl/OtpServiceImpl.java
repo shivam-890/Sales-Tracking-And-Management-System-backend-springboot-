@@ -17,6 +17,7 @@ import com.company.salestracker.repository.UserRepository;
 import com.company.salestracker.service.EmailService;
 import com.company.salestracker.service.OtpService;
 import com.company.salestracker.util.Constants;
+import com.company.salestracker.util.Helper;
 
 @Service
 public class OtpServiceImpl implements OtpService {
@@ -24,6 +25,7 @@ public class OtpServiceImpl implements OtpService {
 	@Autowired private OtpRepository otpRepo;
 	@Autowired private UserRepository userRepo;
 	@Autowired private EmailService emailService;
+	@Autowired private Helper helper;
 	
 	
 	@Override
@@ -51,8 +53,15 @@ public class OtpServiceImpl implements OtpService {
 	@Override
 	public void sendOtp(ForgetPasswordRequest forgetPasswordRequest) {
 		
+		System.out.println(forgetPasswordRequest.getUserEmail());
 		userRepo.findByUserEmailAndDeleted(forgetPasswordRequest.getUserEmail(), false)
 		                       .orElseThrow(() -> new ResourceNotFoundException("If email is exist, otp is sent successfully"));
+		
+//		if(helper.getLoggedUser() != null)
+//		{
+//			throw new BadRequestException("You already logged in");
+//		}
+//		
 	
 	Optional<Otp> alreadyExistOtp = otpRepo.findByUserEmail(forgetPasswordRequest.getUserEmail());
 	
@@ -64,7 +73,7 @@ public class OtpServiceImpl implements OtpService {
 		otpRepo.deleteById(alreadyExist.getOtpId());
 	
       if(alreadyExist != null && LocalDateTime.now().isBefore(alreadyExist.getExpiryTime()))    // yadi otp expire nahi hua he or req aayi he toh wait kro                                              
-             throw new BadRequestException("Wait for a while");
+             throw new BadRequestException("Resend OTP after 1 minute");
 	
 	 if(alreadyExist.getAttempt() >= 4 || alreadyExist.getUsed())                                // yadi usne 3 attempt diye he toh delete ho ke new otp generate krdo
 	{                                                                                                // or otp used ho chuka he toh delete and create new

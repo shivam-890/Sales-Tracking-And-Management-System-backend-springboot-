@@ -120,5 +120,12 @@ public class UserController {
 		return ResponseUtil.buildResponseMessage(Constants.USER_REMOVE_ROLES, HttpStatus.OK);
 	}
 	
+	@GetMapping("/getCurrentUser")
+	@PreAuthorize("isAuthenticated()")
+	public ResponseEntity<UserResponse> getCurrentUser()
+	{
+		return new ResponseEntity<UserResponse>(userService.getCurrentUser(),HttpStatus.OK);
+	}
+	
 
 }

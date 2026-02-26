@@ -36,11 +36,11 @@ public class GlobalExceptionHandler {
 	
 	
 	
-   @ExceptionHandler(ResourceNotFoundException.class)
-	public ResponseEntity<ApiResponse> ResourseNotFoundException(ResourceNotFoundException message)
-	{
-		 return ResponseUtil.buildResponseMessage(message.getMessage(), HttpStatus.NOT_FOUND);
-	}
+//   @ExceptionHandler(ResourceNotFoundException.class)
+//	public ResponseEntity<ApiResponse> ResourseNotFoundException(ResourceNotFoundException message)
+//	{
+//		 return ResponseUtil.buildResponseMessage(message.getMessage(), HttpStatus.NOT_FOUND);
+//	}
 	
 //////////////////////////////////////////////////////////////////////////////////////////
 

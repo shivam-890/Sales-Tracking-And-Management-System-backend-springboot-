@@ -28,8 +28,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter  {
 	      System.err.println("Jwt Authentication shouldNotFilter === ");
 
 	      return 
-	                  path.endsWith("/api/auth/login")||
-	                  path.equals("/error");
+	    		   path.endsWith("/api/auth/login") ||
+	    	        path.endsWith("/api/auth/refresh-token") ||
+	    	        path.equals("/error");
 	                  
 	    }
 	 

@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,6 +45,7 @@ public class AuthController {
 	@PostMapping("/login")
 	public ResponseEntity<JwtResponse> login(@RequestBody @Valid LoginRequest loginReq)
 	{
+		System.out.println("hell");
 		JwtResponse response  = authService.login(loginReq.getUserEmail(), loginReq.getUserPassword());
 		   
 		   response.setApiRespnse(ResponseUtil.buildMessage(Constants.USER_LOGIN, HttpStatus.OK));
@@ -62,7 +65,7 @@ public class AuthController {
 	@PostMapping("/refresh-token")
 	public ResponseEntity<JwtResponse> refreshToken(@RequestBody Map<String, String> request) {
 		String newAccessToken = authService.generateAccessTokenByRefreshToken(request);
-		JwtResponse response = JwtResponse.builder().Token(newAccessToken).build();
+		JwtResponse response = JwtResponse.builder().accessToken(newAccessToken).build();
 		return new ResponseEntity<JwtResponse>(response,HttpStatus.OK);
 	   
 	}
@@ -85,8 +88,8 @@ public class AuthController {
 		return new ResponseEntity<ApiResponse>(response,HttpStatus.OK);	
 	}
 	
-	@PatchMapping("/forgetOtp")
-	public ResponseEntity<ApiResponse> requestForForget(@RequestBody @Valid ForgetOtpRequest forgetOtpRequest)
+	@PatchMapping("/varifyOtp")
+	public ResponseEntity<ApiResponse> verifyOtp(@RequestBody @Valid ForgetOtpRequest forgetOtpRequest)
 	{	
 		otpService.varifyForgetOtp(forgetOtpRequest);
 		ApiResponse response = ResponseUtil.buildMessage(Constants.OTP_VARIFIED, HttpStatus.OK);
@@ -94,7 +97,7 @@ public class AuthController {
 	}
 	
 	@PatchMapping("/forgetPassword")
-	public ResponseEntity<ApiResponse> requestForForget(@RequestBody @Valid ForgetResetPasswordRequest forgetResetPasswordRequest)
+	public ResponseEntity<ApiResponse> resetPassword(@RequestBody @Valid ForgetResetPasswordRequest forgetResetPasswordRequest)
 	{	
 		authService.forgetPassword(forgetResetPasswordRequest);
 		ApiResponse response = ResponseUtil.buildMessage(Constants.RESET_PASSWORD, HttpStatus.OK);
@@ -111,5 +114,5 @@ public class AuthController {
 	}
 	
 	
-	
+		
 }

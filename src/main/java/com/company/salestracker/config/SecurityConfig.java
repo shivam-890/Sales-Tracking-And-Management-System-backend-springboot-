@@ -1,5 +1,7 @@
 package com.company.salestracker.config;
 
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -13,6 +15,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.company.salestracker.security.JwtAuthenticationFilter;
 
@@ -48,10 +53,11 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     	
-        http.csrf(csrf -> csrf.disable())
+        http.cors(cors -> {}).
+        csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
               .requestMatchers("/api/auth/login","/api/auth/refresh-token",
-            		   "/api/auth/forgetRequest","/api/auth/forgetOtp","/api/auth/forgetPassword").permitAll()
+            		   "/api/auth/forgetRequest","/api/auth/varifyOtp","/api/auth/forgetPassword").permitAll()
 //         	  .requestMatchers("/api/users").hasAuthority("ROLE_SUPER_ADMIN")
 //         	 .requestMatchers("/api/roles").hasAuthority("ROLE_SUPER_ADMIN")
 //         	 .requestMatchers("/api/roles").hasAuthority("ADMIN")
@@ -74,7 +80,7 @@ public class SecurityConfig {
             	       response.getWriter().write("""
             	         {
             	           "success": false,
-            	           "message": "Unauthorized - Invalid or Missing Token",
+            	           "message": "Unauthorized",
             	           "errorCode": "AUTH_401"
             	         }
             	         """);
@@ -94,6 +100,21 @@ public class SecurityConfig {
 
         http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+    
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+
+        CorsConfiguration configuration = new CorsConfiguration();
+        configuration.setAllowedOriginPatterns(List.of("*"));
+        configuration.setAllowedMethods(List.of("*"));
+        configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+
+        return source;
     }
 }
 

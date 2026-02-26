@@ -524,6 +524,12 @@ public static boolean isEmployee(User user) {
 
 
 
+@Override
+public UserResponse getCurrentUser() {
+
+   return mapToDto(helper.getLoggedUser());
+	
+}
 
 
 

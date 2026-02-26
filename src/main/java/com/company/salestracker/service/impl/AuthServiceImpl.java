@@ -79,7 +79,7 @@ public class AuthServiceImpl implements AuthService {
 		
 		SecurityContextHolder.getContext().setAuthentication(auth);
 		
-		
+	
 		String accessToken =  tokenProvider.generateToken(email);
 		
 		 refreshTokenRepository.findByUsername(email).ifPresent(u -> {
@@ -93,7 +93,7 @@ public class AuthServiceImpl implements AuthService {
 	    
 
 		
-		return JwtResponse.builder().refreshToken(refreshToken).Token(accessToken).build();
+		return JwtResponse.builder().refreshToken(refreshToken).accessToken(accessToken).build();
 	}
 	
 
@@ -267,7 +267,6 @@ public class AuthServiceImpl implements AuthService {
 	public boolean changePassword(String email,String newPassword,String confirmPassword)
 	{
 		
-		User loggedUser = helper.getLoggedUser();
 
 	
 
@@ -275,10 +274,10 @@ public class AuthServiceImpl implements AuthService {
 			throw new BadRequestException(Constants.CONFIRM_PASS_MISMATCH);
 
 		int affectedRows = userRepo.resetPassword(encoder.encode(newPassword),
-				loggedUser.getUserId());
+				email);
 
 		if (affectedRows == 1) {
-			emailService.send(loggedUser.getUserEmail(), "Reset Password", "Password reset SuccessFully");
+			emailService.send(email, "Reset Password", "Password reset SuccessFully");
 			return true;
 		} else
 			throw new BadRequestException("Password is not reset some technical issue");
@@ -294,6 +293,10 @@ public class AuthServiceImpl implements AuthService {
 		refreshTokenRepository.deleteByToken(logoutRequest.getRefreshtoken());
 		
 	}
+
+
+
+
 	
 	
 }

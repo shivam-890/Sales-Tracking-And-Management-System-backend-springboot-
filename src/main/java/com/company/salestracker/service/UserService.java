@@ -20,6 +20,8 @@ public interface UserService {
 	public Boolean deactivateUser(String userId);
 	public Boolean assignUserRole(String userId,Set<String> userRoles);
 	public Boolean removeUserRole(String userId,Set<String> userRoles);
+	 UserResponse getCurrentUser();
+
 	
 
 }
