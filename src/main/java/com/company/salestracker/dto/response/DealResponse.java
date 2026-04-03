@@ -14,17 +14,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-	"apiResponse",
-	"dealId",
-	"leadName",
-	"dealStage",
-	"expectedAmount",
-	"closingDate",
-	"ownerName",
-	"createdByName",
-	"assignedToName"
-})
+
 public class DealResponse {
 	
 	

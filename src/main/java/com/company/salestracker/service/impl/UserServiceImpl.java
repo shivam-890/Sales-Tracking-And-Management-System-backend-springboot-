@@ -50,16 +50,16 @@ public class UserServiceImpl implements UserService {
 	public PaginationResponse<UserResponse> getAllUsers(Integer pageNumber, Integer pageSize) {
 		
 	    User loggedUser = helper.getLoggedUser();    
-	    Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("transactionId").descending());
+	    Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by("userId").descending());
 	    Page<User> listOfUser=null;
 
 	    if(loggedUser.getOwner() == null )
 	    {	    	
-	    	listOfUser = userRepo.findByUserIdEqualsOwnerIdOrOwnerIdIsNull(pageable);
+	    	listOfUser = userRepo.findActiveUsers(pageable);
 	    }
 	    else 
 	    {
-	    	listOfUser = userRepo.findByOwnerUserIdAndDeleted(loggedUser.getOwner().getUserId(), NOT_DELETED, pageable); 
+	    	listOfUser = userRepo.findByOwnerUserIdAndDeletedAndStatusNot(loggedUser.getOwner().getUserId(), NOT_DELETED,Status.PENDING ,pageable); 
 	    }
 	    if(listOfUser.isEmpty())
 	    {
@@ -235,7 +235,9 @@ public class UserServiceImpl implements UserService {
 	
 	@Override
 	public Boolean deleteUserById(String userId) {		
+		System.out.println(userId);
 		User user =	userRepo.findByUserIdAndDeleted(userId,NOT_DELETED).orElseThrow(() -> new ResourceNotFoundException(Constants.USER_NOT_FOUND));
+		System.out.println(userId);
 		User loggedUser = helper.getLoggedUser();
 		
 		if(userId.equals(loggedUser.getUserId()))   // cannot delete itself
@@ -298,8 +300,18 @@ public class UserServiceImpl implements UserService {
 	public Boolean activateUser(String userId) {
 		
 		User OwnerOfLoggedUser= helper.getOwnerOfLoggedUser();
+		User user = null;
 		
-		User user =	userRepo.findByUserIdAndOwnerUserIdAndDeleted(userId,OwnerOfLoggedUser.getUserId(),NOT_DELETED).orElseThrow(() -> new ResourceNotFoundException(Constants.USER_NOT_FOUND));
+		System.out.println(userId);
+		
+		if(OwnerOfLoggedUser == null)
+		 user =	userRepo.findByUserIdAndDeleted(userId,NOT_DELETED).orElseThrow(() -> new ResourceNotFoundException(Constants.USER_NOT_FOUND));
+		else 
+			user =	userRepo.findByUserIdAndOwnerUserIdAndDeleted(userId,OwnerOfLoggedUser.getUserId(),NOT_DELETED).orElseThrow(() -> new ResourceNotFoundException(Constants.USER_NOT_FOUND));
+			
+		
+		if(user.getOwner().getUserId() == null && user.getCreatedBy() == null)
+			throw new AccessDeniedException("You have no perm to activate superadmin");
 		
 		User loggedUser = helper.getLoggedUser();
 		

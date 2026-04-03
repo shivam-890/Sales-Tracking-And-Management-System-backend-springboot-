@@ -14,15 +14,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-	"apiResponse",
-	"userId",
-	"userName",
-	"userEmail",
-	"userPhone",
-	"userStatus",
-	"userRoles"
-})
+
 public class UserResponse {
 
 	 private ApiResponse apiResponse; 

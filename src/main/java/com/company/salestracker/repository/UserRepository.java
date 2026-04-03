@@ -18,6 +18,7 @@ import jakarta.transaction.Transactional;
 public interface UserRepository extends JpaRepository<User, String>{
 
 	Optional<User> findByUserEmailAndDeleted(String userEmail,Boolean deleted);
+	Optional<User> findByUserEmail(String userEmail);
 	Optional<User> findByUserPhoneAndDeleted(String userPhone,Boolean deleted);
    Optional<List<User>> findByRoles_RoleNameAndDeleted(String roleName,Boolean deleted);
    Optional<User> findByUserIdAndDeleted(String userId,Boolean deleted);
@@ -29,29 +30,47 @@ public interface UserRepository extends JpaRepository<User, String>{
    List<User> findByOwnerUserIdAndStatusAndDeleted(String ownerUserId,Status status,boolean deleted);
    Optional<User> findByUserIdAndOwnerUserIdAndDeleted(String userId,String ownerUserId,boolean deleted);
    
-   
+   @Transactional
+   @Modifying
    @Query("UPDATE User u SET u.status ='DEACTIVATE', u.deleted = true WHERE u.userId = :userId")
    int softDeleteByUserId(@Param("userId") String userId);
    
-   @Query("UPDATE User u SET u.status ='DEACTIVATE', u.deleted = true WHERE u.owner = :owner")
+   @Transactional
+   @Modifying
+   @Query("UPDATE User u SET u.status ='DEACTIVATE', u.deleted = true WHERE u.owner.userId = :owner")
     int softDeleteByOwnerId(@Param("owner") String owner);
    
+   @Transactional
+   @Modifying
    @Query("UPDATE User u SET u.status = 'DEACTIVATE' WHERE u.userId = :userId")
    int deactivateUserByUserId(@Param("userId") String userId);
 	
-   @Query("UPDATE User u SET u.status ='DEACTIVATE' WHERE u.owner = :owner")
+   @Transactional
+   @Modifying
+   @Query("UPDATE User u SET u.status ='DEACTIVATE' WHERE u.owner.userId = :owner")
    int deactivateUserByOwner(@Param("owner") String owner);
    
+   @Transactional
+   @Modifying
    @Query("UPDATE User u SET u.status = 'ACTIVATE' WHERE u.userId = :userId")
    int activateUserByUserId(@Param("userId") String userId);
    
-   @Query("UPDATE User u SET u.status ='ACTIVATE' WHERE u.owner = :owner")
+   @Transactional
+   @Modifying
+   @Query("UPDATE User u SET u.status ='ACTIVATE' WHERE u.owner.userId = :owner")
    int activateUserByOwner(@Param("owner") String owner);
    
-	@Query("SELECT u FROM User u WHERE u.userId = u.owner.userId OR u.owner IS NULL")
-	Page<User> findByUserIdEqualsOwnerIdOrOwnerIdIsNull(Pageable pageable);
+//	@Query("SELECT u FROM User u WHERE u.userId = u.owner.userId OR u.owner IS NULL")
+//	Page<User> findByDeletedFalseAndUserIdEqualsOwnerIdUserIdOrDeletedFalseAndOwnerIdIsNull(Pageable pageable);
 	
-	Page<User> findByOwnerUserIdAndDeleted(String owner,boolean deleted,Pageable pageable);
+	@Query("""
+		    SELECT u FROM User u 
+		    WHERE (u.userId = u.owner.userId OR u.owner IS NULL)
+		    AND u.deleted = false
+		""")
+		Page<User> findActiveUsers(Pageable pageable);
+	
+	Page<User> findByOwnerUserIdAndDeletedAndStatusNot(String owner,boolean deleted,Status status,Pageable pageable);
 
 	@Transactional
 	@Modifying

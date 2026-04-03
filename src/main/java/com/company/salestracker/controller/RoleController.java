@@ -33,7 +33,7 @@ public class RoleController {
 	@Autowired
 	private RoleService roleService;
 
-	@PostMapping("/createrole")
+	@PostMapping("/create-role")
 	@PreAuthorize("hasAuthority('CREATE_ROLE')")
 	public ResponseEntity<RoleResponse> addRole(@RequestBody @Valid RoleRequest roleRequest) {
 			

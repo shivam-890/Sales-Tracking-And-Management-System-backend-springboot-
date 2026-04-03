@@ -12,16 +12,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-	"auditId",
-	"userId",
-	"userEmail",
-	"entityName",
-	"entityId",
-	"timestamp",
-	"ownerId",
-	"ownerEmail"
-})
 public class AuditResponse {
 	
 	    private String auditId;

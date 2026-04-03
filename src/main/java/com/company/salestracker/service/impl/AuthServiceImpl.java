@@ -3,6 +3,7 @@ package com.company.salestracker.service.impl;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -38,6 +39,7 @@ import com.company.salestracker.service.AuthService;
 import com.company.salestracker.service.EmailService;
 import com.company.salestracker.service.RefreshTokenService;
 import com.company.salestracker.service.RoleService;
+import com.company.salestracker.service.UserService;
 import com.company.salestracker.util.Constants;
 import com.company.salestracker.util.Helper;
 
@@ -146,18 +148,33 @@ public class AuthServiceImpl implements AuthService {
 	
 	private UserResponse registerBySuperAdmin(UserRequest userRequest,User loggedUser) {
 		
-		userRepo.findByUserEmailAndDeleted(userRequest.getUserEmail(), false).ifPresent(u -> {
-			throw new ResourceAlreadyExistsException(Constants.EMAIL_ALREADY_EXIST);
-		});
+//		
 		
-		    User user = mapToEntity(userRequest);
+		 Optional<User> existUser = userRepo.findByUserEmail(userRequest.getUserEmail());    // pahele email se user find krenge he ya nahi
+			User savedUser = null;
+			
+			User user = mapToEntity(userRequest);          
+		
+			if(existUser.isPresent())             // yadi user already he email se 
+			{
+			
+			if(existUser.get().getDeleted() == false)   // toh check karenge yadi user exist krta he or delete nahi he mtlb alreday exist he user
+			{
+				throw new ResourceAlreadyExistsException(Constants.EMAIL_ALREADY_EXIST);
+			}
+			user.setUserId(existUser.get().getUserId());     // user exist he or delete bhi hee or same email se register ke liye req aayi he toh hum use hi update krdenge isilye user me old userid set kre he taki wahi update hojaye
+			}
+		
 		    
 	     	Set<Role> roles = new HashSet<>(roleRepo.findByDeletedAndRoleNameIn(false,userRequest.getRoles()));
 		    user.setRoles(roles);
 		    user.setCreatedBy(loggedUser);
 		    user.setUserPassword(encoder.encode(user.getUserPassword()));
-		    User savedUser = userRepo.save(user);
 		    
+		    
+		    
+		    	savedUser =  userRepo.save(user);
+
 		    
 		    // to check super admin admin add krna chahta he ya super admin, yadi super admin toh setowner id null, yadi admin toh jo admin add horha he usi ki id setOwner me chale jayegi
 		    boolean wantAddSuperAdmin=false;
@@ -183,18 +200,28 @@ public class AuthServiceImpl implements AuthService {
 		
     private UserResponse registerByUser(UserRequest userRequest,User loggedUser) {
     	
-		userRepo.findByUserEmailAndDeleted(userRequest.getUserEmail(), false).ifPresent(u -> {
-			throw new ResourceAlreadyExistsException(Constants.EMAIL_ALREADY_EXIST);
-		});
+    Optional<User> existUser = userRepo.findByUserEmail(userRequest.getUserEmail());
+		User savedUser = null;
+		User user = mapToEntity(userRequest);
+	
+		if(existUser.isPresent())              
+		{
 		
-		    User user = mapToEntity(userRequest);
+		if(existUser.get().getDeleted() == false)
+		{
+			throw new ResourceAlreadyExistsException(Constants.EMAIL_ALREADY_EXIST);
+		}
+		user.setUserId(existUser.get().getUserId());
+
+		}
+		
 		    	  
 	     	Set<Role> roles = new HashSet<>(roleRepo.findByDeletedAndAdminIdAndRoleNameIn(false,loggedUser.getOwner(), userRequest.getRoles()));
 		    user.setRoles(roles);
 		    user.setCreatedBy(loggedUser);
 		    user.setUserPassword(encoder.encode(user.getUserPassword()));
 		    
-		    User savedUser = userRepo.save(user);
+		     savedUser = userRepo.save(user);
 		    savedUser.setOwner(loggedUser.getOwner());           
 		     
 		    if(!loggedUser.getUserId().equals(loggedUser.getOwner().getUserId())) {

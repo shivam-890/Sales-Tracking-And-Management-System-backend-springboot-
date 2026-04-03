@@ -39,7 +39,6 @@ import com.company.salestracker.util.Constants;
 import com.company.salestracker.util.Helper;
 
 @Service
-
 public class SaleServiceImpl implements SalesService {
 
     @Autowired private  SalesRepository saleRepo;
@@ -59,7 +58,7 @@ public class SaleServiceImpl implements SalesService {
     	User ownerOfLoggedUser = helper.getOwnerOfLoggedUser();
     	User loggedUser =helper.getLoggedUser();
 
-         saleRepo.findByDealAndOwnerUserId(saleRequest.getDeal(),ownerOfLoggedUser.getUserId())
+         saleRepo.findByDealDealIdAndOwnerUserId(saleRequest.getDeal(),ownerOfLoggedUser.getUserId())
         		        .ifPresent(u -> {  throw new ResourceAlreadyExistsException(Constants.SALE_ALREADY_EXISTS);});  // same deal id se koi sale hematlb sale exist krti he toh exception
                  	
         
@@ -132,7 +131,7 @@ public class SaleServiceImpl implements SalesService {
 
         Page<Sale> listOfSale = saleRepo.findByOwnerUserId(ownerOfLoggedUser.getUserId(),pageable);
         
-        if(listOfSale.isEmpty()) throw new ResourceNotFoundException(Constants.SALE_NOT_FOUND);
+     //   if(listOfSale.isEmpty()) throw new ResourceNotFoundException(Constants.SALE_NOT_FOUND);
 
    	    List<SaleResponse> dtoPage = listOfSale.map(this::mapToResponse).toList();
         auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get All sales sale").entityName("Sale").entityId(null).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());

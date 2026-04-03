@@ -41,7 +41,7 @@ public class AuditLog {
     @Column(nullable = false)
     private String entityName;
     
-    @Column(nullable = false)
+    @Column(nullable = true)
     private String entityId;
 
     @CreationTimestamp

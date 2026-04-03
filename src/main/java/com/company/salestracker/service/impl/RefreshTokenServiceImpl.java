@@ -30,6 +30,8 @@ public class RefreshTokenServiceImpl implements RefreshTokenService{
 
     public RefreshToken verifyRefreshToken(String token) {
 
+    	System.out.println(token+"h");
+    	
         RefreshToken refreshToken = refreshTokenRepository
                 .findByToken(token)
                 .orElseThrow(() -> new RuntimeException("Token not found"));

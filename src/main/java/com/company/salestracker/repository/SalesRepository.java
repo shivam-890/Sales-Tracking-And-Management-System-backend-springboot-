@@ -13,7 +13,7 @@ import com.company.salestracker.enums.PaymentStatus;
 
 public interface SalesRepository extends JpaRepository<Sale, String> {
 	
-      Optional<Sale> findByDealAndOwnerUserId(String dealId,String owner);
+      Optional<Sale> findByDealDealIdAndOwnerUserId(String dealId,String owner);
       Optional<Sale> findBySaleIdAndOwnerUserId(String saleId,String owner);
       Page<Sale> findByOwnerUserId(String userId,Pageable pageable);
       List<Sale> findByOwnerUserIdAndPaymentStatusAndSaleDateBetween(String owner,PaymentStatus paymentstatus,LocalDate start,LocalDate end);

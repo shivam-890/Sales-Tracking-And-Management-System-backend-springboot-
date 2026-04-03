@@ -26,7 +26,7 @@ public class AuditServiceImpl implements AuditService{
 	@Override
 	public AuditLog createAuditLog(AuditLog auditLog) {
 		
-    	LeadServiceImpl.leadValidations();
+    	//LeadServiceImpl.leadValidations();
 		
 		return auditLogRepo.save(auditLog);
 	}

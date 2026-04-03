@@ -116,6 +116,8 @@ public class Constants {
 	 public final static String CANNOT_UPDATE_LEAD = "You cannot update lead because lead in the any process";
 	 public final static String CANNOT_DELETE_LEAD = "You cannot delete lead because lead in the any process";
 	 public final static String STATUS_NOT_BLANK = "Status is required";
+	 public final static String LEAD_ALREADY_EXIST = "Lead already exist ";
+	 
 	
 	 // ============================= DEAL RELATED =====================================
 	 

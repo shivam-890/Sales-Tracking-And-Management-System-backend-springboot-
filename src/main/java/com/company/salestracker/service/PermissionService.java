@@ -13,7 +13,7 @@ public interface PermissionService {
 
 	public List<PermissionResponse> getPermissions();
 	public Set<Permission> getPermissionsForLoader();
-	public Set<String> getPermissionsOfLoggedUser() ;
+	public List<PermissionResponse> getPermissionsOfLoggedUser() ;
 
 	
 }

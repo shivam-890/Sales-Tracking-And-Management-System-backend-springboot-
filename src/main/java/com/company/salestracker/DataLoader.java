@@ -63,6 +63,8 @@ public class DataLoader implements CommandLineRunner{
 	        // PERMISSION Management
 	        Map.entry("ASSIGN_PERMISSION", "Assign Permission"),
 	        Map.entry("REMOVE_PERMISSION", "Remove Permission"),
+	        Map.entry("GET_LOGGED_USER_PERMISSIONS", "get logged user permiision for assin perm to role"),
+	        
 	        
 	        //LEAD Permission
 	        Map.entry("CREATE_LEAD", "Create lead"),

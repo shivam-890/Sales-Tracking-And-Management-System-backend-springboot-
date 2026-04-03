@@ -14,6 +14,7 @@ import com.company.salestracker.dto.response.PermissionResponse;
 import com.company.salestracker.entity.AuditLog;
 import com.company.salestracker.entity.Permission;
 import com.company.salestracker.entity.User;
+import com.company.salestracker.exception.AccessDeniedException;
 import com.company.salestracker.repository.PermissionRepository;
 import com.company.salestracker.service.AuditService;
 import com.company.salestracker.service.PermissionService;
@@ -59,12 +60,12 @@ public class PermissionServiceImpl implements PermissionService{
 	}
 
 	@Override
-	public Set<String> getPermissionsOfLoggedUser() {
-		User loggedUser = helper.getLoggedUser();
-		
+	public List<PermissionResponse> getPermissionsOfLoggedUser() {
+
+	    User loggedUser = helper.getLoggedUser();
 
 	    if (loggedUser == null) {
-	        throw new RuntimeException("User not authenticated");
+	        throw new AccessDeniedException("User not authenticated");
 	    }
 
 	    return Optional.ofNullable(loggedUser.getRoles())
@@ -73,8 +74,11 @@ public class PermissionServiceImpl implements PermissionService{
 	            .filter(role -> role.getPermissions() != null)
 	            .flatMap(role -> role.getPermissions().stream())
 	            .map(Permission::getPermissionCode)
-	            .collect(Collectors.toSet());
-		
+	            .distinct()
+	            .map(code -> PermissionResponse.builder()
+	                    .permissionCode(code)
+	                    .build())
+	            .toList();
 	}
 	
 	

@@ -2,6 +2,7 @@ package com.company.salestracker.dto.response;
 
 
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -15,12 +16,6 @@ import lombok.Setter;
 @Getter
 @Setter
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-	"apiResponse",
-	"roleId",
-	"roleName",
-	"RoleDescription"
-})
 public class RoleResponse {
          
 	private String roleId;
@@ -28,6 +23,7 @@ public class RoleResponse {
 	private String roleDescription;
 	private Set<String> rolePermission;
 	private String createdBy;
+	private LocalDateTime createdAt;
 	private String adminId;
 	private ApiResponse apiResponse;
 }

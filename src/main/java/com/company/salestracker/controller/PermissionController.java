@@ -4,6 +4,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,9 +23,16 @@ public class PermissionController {
 	private PermissionService permissionService;
 	
 
+//	@GetMapping
+//	public ResponseEntity<List<PermissionResponse>> getAllPermission() {
+//		List<PermissionResponse> response = permissionService.getPermissions();
+//		return new ResponseEntity<List<PermissionResponse> >(response, HttpStatus.OK);
+//	}
+	
 	@GetMapping
-	public ResponseEntity<List<PermissionResponse>> getAllPermission() {
-		List<PermissionResponse> response = permissionService.getPermissions();
+	@PreAuthorize("hasAuthority('GET_LOGGED_USER_PERMISSIONS')")
+	public ResponseEntity<List<PermissionResponse>> getAllPermissionOfLoggedUser() {
+		List<PermissionResponse> response = permissionService.getPermissionsOfLoggedUser();
 		return new ResponseEntity<List<PermissionResponse> >(response, HttpStatus.OK);
 	}
 

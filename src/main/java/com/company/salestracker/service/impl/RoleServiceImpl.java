@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import com.company.salestracker.dto.request.PermissionAssignRemoveFromRoleRequest;
 import com.company.salestracker.dto.request.RoleRequest;
+import com.company.salestracker.dto.response.PermissionResponse;
 import com.company.salestracker.dto.response.RoleResponse;
 import com.company.salestracker.entity.AuditLog;
 import com.company.salestracker.entity.Permission;
@@ -82,6 +83,7 @@ public class RoleServiceImpl implements RoleService {
 
 	@Override
 	public RoleResponse updateRoleById(String roleId, RoleRequest roleRequest) {
+		
 
 		Role existRole = roleRepo.findByRoleIdAndDeleted(roleId,  NOT_DELETED )
 				.orElseThrow(() -> new ResourceNotFoundException(Constants.ROLE_NOT_FOUND));
@@ -124,6 +126,10 @@ public class RoleServiceImpl implements RoleService {
 					.collect(Collectors.toSet());		
 			Set<String> permissions = permissionsRequest.getPermissions();
 		User loggedUser = helper.getLoggedUser();
+		
+		if(existRole.getCreatedBy() == null)
+			throw new AccessDeniedException(Constants.PERMISSION_NOT_REMOVE);
+
 
 		if (loggedUser.getOwner() == null)         // Logged user Super admin he
 		{
@@ -301,6 +307,7 @@ public class RoleServiceImpl implements RoleService {
 						role.getPermissions().stream().map(Permission::getPermissionCode).collect(Collectors.toSet()))
 				.adminId(role.getAdminId() != null? role.getAdminId().getUserId():null)
 				.createdBy(role.getCreatedBy() != null? role.getCreatedBy().getUserId():null)
+				.createdAt(role.getCreatedAt())
 				.build();
 	}
 
@@ -336,8 +343,13 @@ public class RoleServiceImpl implements RoleService {
 
 		// jo logged user he or loggeduser ke pas jo permission he wahi permisions role
 		// ko de skta he
-		if (!permissionService.getPermissionsOfLoggedUser().containsAll(roleRequest.getPermissions())) {
-			throw new BadRequestException(Constants.PERMISSION_NOT_ASSIGN);
+		Set<String> loggedUserPermissions = permissionService.getPermissionsOfLoggedUser()
+		        .stream()
+		        .map(PermissionResponse::getPermissionCode) // ya getPermissionName()
+		        .collect(Collectors.toSet());
+
+		if (!loggedUserPermissions.containsAll(roleRequest.getPermissions())) {
+		    throw new BadRequestException(Constants.PERMISSION_NOT_ASSIGN);
 		}
 
 		Role mappedRole = mapToEntity(roleRequest);
@@ -361,8 +373,8 @@ public class RoleServiceImpl implements RoleService {
 		{
 			Optional<Role> role = roleRepo.findByRoleNameAndAdminIdUserIdAndDeleted(roleRequest.getRoleName(), null,
 					 NOT_DELETED );
-			if (!role.isEmpty())
-				throw new ResourceAlreadyExistsException(Constants.ROLE_ALREADY_EXIST);
+//			if (!role.isEmpty())
+//				throw new ResourceAlreadyExistsException(Constants.ROLE_ALREADY_EXIST);
 
 //			Role mappedRole = mapToEntity(roleRequest);
 //			mappedRole.setCreatedBy(role.get().getCreatedBy());
@@ -397,11 +409,17 @@ public class RoleServiceImpl implements RoleService {
 	
 	
 	private RoleResponse biolerPlateCodeOfUpdate(Role existRole, RoleRequest roleRequest, User loggedUser) {
+		
 
 //  Permission check
-		if (!permissionService.getPermissionsOfLoggedUser().containsAll(roleRequest.getPermissions())) {
-			throw new AccessDeniedException(Constants.CANNOT_UPDATE_ROLE + ", not have permission");
-		}
+		Set<String> userPermissionCodes = permissionService.getPermissionsOfLoggedUser()
+			    .stream()
+			    .map(PermissionResponse::getPermissionCode)  // extract code
+			    .collect(Collectors.toSet());
+
+			if (!userPermissionCodes.containsAll(roleRequest.getPermissions())) {
+			    throw new AccessDeniedException(Constants.CANNOT_UPDATE_ROLE + ", not have permission");
+			}
 
 //  Fetch new permissions from DB
 		Set<Permission> newPermissions = new HashSet<>(
@@ -409,7 +427,8 @@ public class RoleServiceImpl implements RoleService {
 
 //  Replace old permissions completely
 		existRole.setPermissions(newPermissions);
-
+		existRole.setRoleDescription(roleRequest.getRoleDescription());
+		existRole.setRoleName(roleRequest.getRoleName());
 		existRole.setAdminId(loggedUser.getOwner());
 
 		Role savedRole = roleRepo.save(existRole);

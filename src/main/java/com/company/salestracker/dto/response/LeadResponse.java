@@ -1,5 +1,7 @@
 package com.company.salestracker.dto.response;
 
+import java.time.LocalDateTime;
+
 import com.company.salestracker.enums.LeadStatus;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -37,6 +39,8 @@ public class LeadResponse {
     private String source;
     
     private String createdByName;
+    
+    private LocalDateTime createdAt;
     
     private String ownerName;
     

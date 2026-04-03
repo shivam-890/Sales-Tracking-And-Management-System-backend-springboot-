@@ -6,13 +6,13 @@ public enum DealStatus {
 	NEGOTIATION {
 		@Override
 		public boolean canMoveTo(DealStatus next) {
-			return next == PROPOSAL ;
+			return next != PROPOSAL ;
 		}
 	},
 	PROPOSAL {
 		@Override
 		public boolean canMoveTo(DealStatus next) {
-			return next == CLOSED_WON || next == CLOSED_LOST;
+			return next != CLOSED_WON && next != CLOSED_LOST;
 		}
 	},
 	CLOSED_WON {

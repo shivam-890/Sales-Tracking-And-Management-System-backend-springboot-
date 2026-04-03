@@ -24,6 +24,7 @@ import com.company.salestracker.entity.User;
 import com.company.salestracker.enums.LeadStatus;
 import com.company.salestracker.exception.AccessDeniedException;
 import com.company.salestracker.exception.BadRequestException;
+import com.company.salestracker.exception.ResourceAlreadyExistsException;
 import com.company.salestracker.exception.ResourceNotFoundException;
 import com.company.salestracker.repository.LeadActivityRepository;
 import com.company.salestracker.repository.LeadRepository;
@@ -63,7 +64,7 @@ public class LeadServiceImpl implements LeadService {
     	leadValidations();
     	
     	leadRepo.findByLeadEmailAndDeleted(leadRequest.getLeadEmail(),NOT_DELETED)  // yadi is email se lead already he toh save nahi hogi
-    	               .orElseThrow(() -> new ResourceNotFoundException(Constants.LEAD_NOT_FOUND));
+    	               .ifPresent( u -> {throw new ResourceAlreadyExistsException(Constants.LEAD_ALREADY_EXIST);});
     	
     	if(!(leadRequest.getAssignedTo()==null || leadRequest.getAssignedTo().isBlank())) {
    		  assignToUser = userRepo.findByUserIdAndOwnerUserIdAndDeleted(leadRequest.getAssignedTo(),ownerOfloggedUser.getUserId(),NOT_DELETED)                           
@@ -125,7 +126,7 @@ public class LeadServiceImpl implements LeadService {
  	    
  	    Page<Lead> listOfLead = leadRepo.findByOwner_UserIdAndDeleted(loggedUser.getOwner().getUserId(),pageable,NOT_DELETED);
  	    
-  	    if(listOfLead.isEmpty()) throw new ResourceNotFoundException(Constants.LEAD_NOT_FOUND);
+  	  //  if(listOfLead.isEmpty()) throw new ResourceNotFoundException(Constants.LEAD_NOT_FOUND);
 
  	    List<LeadResponse> dtoPage = listOfLead.map(this::mapToDto).toList();
 
@@ -186,6 +187,7 @@ public class LeadServiceImpl implements LeadService {
     public LeadResponse getLeadById(String leadId) {
     	User ownerOfloggedUser = helper.getOwnerOfLoggedUser();
     	User loggedUser = helper.getLoggedUser();
+    	
 
     	leadValidations();
 
@@ -196,7 +198,8 @@ public class LeadServiceImpl implements LeadService {
         auditService.createAuditLog(AuditLog.builder().user(loggedUser).action("Get lead by id").entityName("Lead").entityId(lead.getLeadId()).timestamp(LocalDateTime.now()).ownerId(loggedUser.getOwner()).build());
 
 
-
+     //  System.out.println(lead.getAssignedTo().getUserName());
+        
         return mapToDto(lead);
     }
 
@@ -297,6 +300,7 @@ public class LeadServiceImpl implements LeadService {
                 .owner(loggedUser.getOwner())
                 .status(LeadStatus.NEW)
                 .assignedTo(null)
+                .deleted(false)
                 .build();
     }
 
@@ -315,6 +319,7 @@ public class LeadServiceImpl implements LeadService {
                 .status(lead.getStatus())
                 .assignedToName(lead.getAssignedTo() != null ? 
                         lead.getAssignedTo().getUserName() : null)
+                .createdAt(lead.getCreatedAt())
                 .build();
     }
     
